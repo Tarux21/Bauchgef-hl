@@ -115,6 +115,22 @@ input[type=date],input[type=number],input[type=search],select{border:1px solid v
 .swap .from{color:var(--muted);text-decoration:line-through}
 .swap .arrow{color:var(--apricot);font-weight:700}
 
+/* Deine Woche */
+.wnav{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.wnav .wtitle{text-align:center;min-width:0}
+.wnav .iconbtn{font-size:22px;line-height:1}
+.wnav .iconbtn:disabled{opacity:.35}
+.cmp{font-family:var(--display);font-size:18px;color:var(--apricot);text-wrap:balance}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.facts div{background:var(--card);border-radius:12px;padding:8px 10px;font-size:13px;color:var(--muted)}
+.facts b{display:block;font-family:var(--display);font-size:17px;color:var(--fg)}
+.ruler{position:relative;height:8px;background:var(--card);border-radius:9px;margin-bottom:14px}
+.ruler i{position:absolute;left:0;top:0;bottom:0;background:var(--sage);border-radius:9px}
+.ruler span{position:absolute;top:11px;font-size:11px;color:var(--muted)}
+.ruler span:first-of-type{left:0} .ruler span:last-of-type{right:0}
+.forme{background:var(--apricot-soft);border-radius:12px;padding:10px 12px;font-size:14.5px}
+.forme b{color:var(--apricot)}
+
 /* Trink-Zähler */
 .glasses{display:flex;gap:10px;flex-wrap:wrap}
 .glass{width:38px;height:48px;border:2.5px solid var(--water);border-top-width:0;border-radius:0 0 10px 10px;background:transparent;position:relative;overflow:hidden;padding:0}
@@ -581,6 +597,49 @@ const TRIMESTERS = {
    prio:["Eisen","Omega-3","Ballaststoffe"]},
 };
 
+/* Wochen-Infos. Größen sind Durchschnittswerte (bis SSW 19 Scheitel–Steiß, ab SSW 20 Kopf bis Fuß).
+   [Woche, Vergleich, Länge cm, Gewicht g, Entwicklung, Ernährungstipp] */
+const WEEKS = [
+ [4,"So groß wie ein Mohnsamen",0.1,0,"Die befruchtete Eizelle hat sich in der Gebärmutter eingenistet. Ein Schwangerschaftstest kann jetzt positiv sein.","Folsäure: täglich 400 µg als Tablette. Und ab jetzt keinen Alkohol."],
+ [5,"So groß wie ein Sesamkorn",0.2,0,"Das Neuralrohr entsteht, aus ihm werden Gehirn und Rückenmark. Auch das Herz beginnt sich zu bilden.","Jodsalz statt normalem Salz verwenden, Jod ist wichtig für Babys Schilddrüse und Gehirn."],
+ [6,"So groß wie eine Linse",0.6,0,"Das Herz schlägt schon und ist im Ultraschall oft als Flackern zu sehen.","Gegen Übelkeit helfen kleine Mahlzeiten und etwas Trockenes vor dem Aufstehen. Mehr unter „Lust & Hilfe“."],
+ [7,"So groß wie eine Heidelbeere",1,0,"Arme und Beine sind als kleine Knospen zu erkennen.","Fleisch und Eier immer durchgaren, das schützt vor Toxoplasmose und Salmonellen."],
+ [8,"So groß wie ein Gummibärchen",1.6,1,"Finger und Zehen beginnen sich zu bilden.","Kaffee ist in Ordnung, aber höchstens 200 mg Koffein am Tag, das sind etwa 2 Tassen."],
+ [9,"So groß wie eine Kirsche",2.3,2,"Das Baby macht erste kleine Bewegungen, spüren kann man sie noch nicht.","Grünes Gemüse wie Brokkoli, Spinat und Feldsalat liefert Folsäure. Gut waschen."],
+ [10,"So groß wie eine Erdbeere",3,4,"Die wichtigsten Organe sind angelegt. Ab jetzt nennt man das Baby Fötus.","Ingwertee kann bei Übelkeit helfen, lauwarm oder kalt getrunken."],
+ [11,"So groß wie eine Feige",4,7,"Die Fingernägel beginnen zu wachsen.","Etwa 1,5 Liter am Tag trinken. Der Trink-Zähler auf dieser Seite hilft dabei."],
+ [12,"So groß wie eine Limette",5.4,14,"Das Baby kann die Finger öffnen und schließen und hat erste Reflexe.","Käse aus Rohmilch meiden. Hartkäse wie Parmesan oder Bergkäse ist in Ordnung."],
+ [13,"So groß wie eine Zitrone",7.4,23,"Die Stimmbänder bilden sich. Bei vielen lässt die Übelkeit jetzt nach.","Der Energiebedarf steigt erst ab dem 2. Trimester. Jetzt zählt die Qualität, nicht die Menge."],
+ [14,"So lang wie eine Bankkarte",8.7,43,"Das Baby kann die Stirn runzeln und am Daumen nuckeln.","Eisen aus Hülsenfrüchten wird besser aufgenommen, wenn Vitamin C dabei ist, z. B. Paprika."],
+ [15,"So groß wie ein Apfel",10,70,"Feine Härchen, der sogenannte Flaum, wachsen am ganzen Körper.","Wer keinen Fisch isst, sollte mit der Ärztin über Omega-3 (DHA) als Kapsel sprechen."],
+ [16,"So groß wie eine Avocado",11.6,100,"Die Augen bewegen sich unter den geschlossenen Lidern.","Snacks vorbereiten, z. B. den Kerne-Mix. Dann greift man seltener zu Süßigkeiten."],
+ [17,"So groß wie ein Granatapfel",13,140,"Unter der Haut bildet sich das erste Fettgewebe.","Drei Portionen Milchprodukte am Tag decken einen großen Teil des Calciumbedarfs."],
+ [18,"So groß wie eine Paprika",14,190,"Das Baby kann jetzt hören, zum Beispiel deinen Herzschlag und deine Stimme.","Vollkorn statt Weißmehl: mehr Ballaststoffe, Eisen und Magnesium."],
+ [19,"So groß wie eine Mango",15,240,"Eine schützende Käseschmiere legt sich auf die Haut. Viele spüren jetzt die ersten Bewegungen.","Babys Knochen werden fester. Calcium aus Joghurt, Milch und Käse aus pasteurisierter Milch hilft dabei."],
+ [20,"So lang wie eine große Banane",25.6,300,"Halbzeit! Um diese Zeit findet meist der große Ultraschall statt.","Ab jetzt etwa 250 kcal mehr am Tag, z. B. ein Vollkornbrot mit Käse und ein Apfel."],
+ [21,"So schwer wie eine Dose Tomaten",26.7,360,"Das Baby schluckt Fruchtwasser und übt so das Verdauen.","Gegen Verstopfung: geschroteter Leinsamen, immer mit einem großen Glas Wasser."],
+ [22,"So schwer wie eine Papaya",27.8,430,"Augenbrauen und Wimpern sind zu sehen.","Fleisch 2 bis 3 Mal pro Woche liefert gut verwertbares Eisen. Tee und Kaffee nicht direkt zum Essen."],
+ [23,"So schwer wie eine Packung Spaghetti",28.9,500,"In der Lunge bilden sich feine Blutgefäße.","Salat lieber selbst waschen und schneiden statt fertig aus der Tüte (Listerien)."],
+ [24,"So lang wie ein Maiskolben mit Blättern",30,600,"Das Gesicht ist fast fertig ausgebildet.","Zwischen SSW 24 und 28 steht der Zuckertest an. Durst am besten mit Wasser löschen, süße Getränke sparsam."],
+ [25,"So schwer wie ein Blumenkohl",34.6,660,"Das Baby reagiert auf bekannte Stimmen.","Bei Sodbrennen helfen mehrere kleine Mahlzeiten statt drei großer."],
+ [26,"Etwas länger als ein Schullineal",35.6,760,"Die Augen öffnen sich bald zum ersten Mal.","Magnesium aus Vollkorn, Kernen und Bananen kann Wadenkrämpfen vorbeugen."],
+ [27,"So schwer wie ein Kopfsalat",36.6,875,"Das Baby hat einen Schlaf-Wach-Rhythmus.","Eiweiß aus Hülsenfrüchten, Milchprodukten und Eiern unterstützt das Wachstum."],
+ [28,"So schwer wie eine Packung Mehl",37.6,1000,"Das 3. Trimester beginnt. Das Baby kann blinzeln.","Jetzt etwa 500 kcal mehr am Tag. Lieber zwei gute Snacks als eine große Portion extra."],
+ [29,"So schwer wie ein Butternut-Kürbis",38.6,1150,"Muskeln und Lunge reifen weiter.","Sehr müde? Den Eisenwert bei der Ärztin prüfen lassen."],
+ [30,"So schwer wie ein Weißkohl",39.9,1300,"Das Gehirn wächst jetzt besonders schnell.","Vitamin D bildet die Haut im Sonnenlicht. Ein täglicher Spaziergang tut doppelt gut."],
+ [31,"So schwer wie eine große Flasche Wasser",41.1,1500,"Alle fünf Sinne funktionieren.","Gefrierfach füllen: Suppe oder Bolognese doppelt kochen und für die Zeit nach der Geburt einfrieren."],
+ [32,"So schwer wie eine Ananas",42.4,1700,"Das Baby übt das Atmen mit Fruchtwasser.","Omega-3 (DHA) ist jetzt besonders wichtig für Babys Gehirn und Augen."],
+ [33,"So schwer wie zwei Packungen Zucker",43.7,1900,"Die Knochen härten weiter aus, nur der Schädel bleibt für die Geburt beweglich.","Abends leicht essen, das hilft gegen Sodbrennen in der Nacht."],
+ [34,"So schwer wie eine Honigmelone",45,2100,"Viele Babys drehen sich jetzt mit dem Kopf nach unten.","Ballaststoffe und viel Wasser halten die Verdauung in Schwung."],
+ [35,"So lang wie ein Unterarm vom Ellbogen bis zu den Fingerspitzen",46.2,2400,"Es wird eng, die Bewegungen fühlen sich jetzt eher wie Schieben an.","Kliniktasche: Müsliriegel, Trockenobst und eine Wasserflasche einpacken."],
+ [36,"So schwer wie ein Laptop mit Ladegerät",47.4,2600,"Die Lunge ist fast reif.","Jod bleibt auch in der Stillzeit wichtig. Mit der Ärztin klären, wie es danach weitergeht."],
+ [37,"So schwer wie drei Packungen Mehl",48.6,2900,"Ab SSW 37+0 gilt das Baby als reif geboren.","Wenn der Magen eng wird: kleine, häufige Mahlzeiten."],
+ [38,"So schwer wie eine Packung Waschmittel",49.8,3100,"Der Flaum auf der Haut ist größtenteils verschwunden.","Vorrat für das Wochenbett anlegen: Haferflocken, TK-Gemüse, Vollkornnudeln, Kerne."],
+ [39,"So schwer wie ein Kürbis",50.7,3300,"Das Baby legt weiter Fettpolster zu.","Genug trinken, auch wenn es mühsam ist. Wasser und ungesüßte Tees sind ideal."],
+ [40,"So schwer wie eine kleine Wassermelone",51.2,3500,"Der errechnete Termin. Nur wenige Babys kommen genau heute.","Leichte Mahlzeiten mit Kohlenhydraten, z. B. Haferbrei oder Nudeln, geben Energie für die Geburt."],
+];
+const weekInfo = w => WEEKS.find(x=>x[0]===Math.max(4,Math.min(40,w)));
+
 const SUPPLEMENTS = ["Folsäure","Jod","Eisen","Vitamin D","DHA"];
 const SLOTS = [["f","Frühstück","f"],["m","Mittag","h"],["a","Abend","h"],["s","Snack","s"]];
 const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
@@ -751,6 +810,7 @@ function viewHeute(){
     <div><div class="label">Schwangerschaftswoche</div><div class="big">SSW ${Math.max(0,P.w)}+${P.d}</div><div class="small">${T.name} · ${leftTxt}</div></div>
   </section>`;
 
+  html += viewWeekCard(P);
   html += `<section class="view" style="gap:10px"><h2>Jetzt wichtig</h2><div class="nut">${T.focus.map(([b,t])=>`<div><b>${esc(b)}</b>${esc(t)}</div>`).join("")}</div></section>`;
 
   const di = todayIndex(), day = S.plan.days[di];
@@ -768,6 +828,25 @@ function viewHeute(){
   }
   html += `<div class="tip"><b>Tipp für das ${T.name}:</b> ${esc(T.tip)}</div>`;
   return `<div class="view">${html}${disclaimer()}</div>`;
+}
+
+function viewWeekCard(P){
+  const cur = Math.max(4, Math.min(40, P.w));
+  const w = ui.week ? Math.max(4, Math.min(40, ui.week)) : cur;
+  const [n, cmp, cm, g, dev, tip] = weekInfo(w);
+  const bar = Math.max(1.5, cm/52*100);
+  const weight = g >= 1000 ? fmtNum(Math.round(g/100)/10)+" kg" : g ? g+" g" : "unter 1 g";
+  return `<section class="panel weekcard" aria-label="Deine Woche">
+    <div class="wnav"><button class="iconbtn" data-week="${w-1}" ${w<=4?"disabled":""} aria-label="Vorige Woche">‹</button>
+      <div class="wtitle"><h2>Deine Woche: SSW ${n}</h2><span class="small muted">${w===cur?"diese Woche":w<cur?`vor ${cur-w} Woche${cur-w>1?"n":""}`:`in ${w-cur} Woche${w-cur>1?"n":""}`}</span></div>
+      <button class="iconbtn" data-week="${w+1}" ${w>=40?"disabled":""} aria-label="Nächste Woche">›</button></div>
+    <b class="cmp">${esc(cmp)}</b>
+    <div class="facts"><div><b>ca. ${fmtNum(cm)} cm</b>${n<20?"Scheitel bis Steiß":"Kopf bis Fuß"}</div><div><b>ca. ${weight}</b>Gewicht</div></div>
+    <div class="ruler" aria-hidden="true"><i style="width:${bar.toFixed(1)}%"></i><span>0</span><span>50 cm</span></div>
+    <p style="margin:0">${esc(dev)}</p>
+    <div class="forme"><b>Für dich:</b> ${esc(tip)}</div>
+    ${w!==cur?`<button class="btn ghost small" data-week="${cur}">Zurück zu dieser Woche</button>`:""}
+  </section>`;
 }
 
 function viewLust(){
@@ -923,6 +1002,7 @@ document.addEventListener("click", e => {
   if(b.dataset.crave){ ui.craving=b.dataset.crave; render(); return; }
   if(b.dataset.rtype){ ui.rType=b.dataset.rtype; render(); return; }
   if(b.dataset.wtab){ ui.wTab=b.dataset.wtab; render(); return; }
+  if(b.dataset.week){ ui.week=+b.dataset.week; render(); const c=document.querySelector(".weekcard"); if(c) c.scrollIntoView({block:"nearest"}); return; }
   if(b.dataset.ltab){ ui.lTab=b.dataset.ltab; render(); return; }
   if(b.dataset.complaint){ ui.complaint=b.dataset.complaint; render(); return; }
   if(b.dataset.glass){ const k=todayISO(), n=+b.dataset.glass, cur=S.water[k]||0; S.water={[k]: n===cur ? n-1 : n}; save(); render(); return; }

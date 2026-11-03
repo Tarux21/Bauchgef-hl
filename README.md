@@ -3,7 +3,7 @@
 Web-App fürs Handy: Ernährung in der Schwangerschaft, einfach gemacht.
 
 - **Heute:** Schwangerschaftswoche (aus dem Geburtstermin), was im aktuellen Trimester wichtig ist, die heutigen Mahlzeiten aus dem Wochenplan und eine Abhak-Liste für Folsäure, Jod usw.
-- **Heute** zeigt außerdem einen Trink-Zähler (6 Gläser à 250 ml = 1,5 l).
+- **Heute** zeigt außerdem die Karte „Deine Woche“ (SSW 4 bis 40: Größenvergleich, Länge, Gewicht, Entwicklung und ein passender Ernährungstipp, mit Pfeilen zum Blättern) und einen Trink-Zähler (6 Gläser à 250 ml = 1,5 l).
 - **Lust & Hilfe:** Reiter „Heißhunger“: Lust auf Schokolade, Chips, Pizza, Eis …? Gesunde, schwangerschaftssichere Alternativen mit Rezept und ein Tipp ohne Kochen. Reiter „Beschwerden“: Tipps und passende Rezepte bei Übelkeit, Sodbrennen, Verstopfung, Wadenkrämpfen und Müdigkeit, jeweils mit Hinweis, wann man zur Ärztin sollte.
 - **Darf ich?:** Lebensmittel-Ampel mit Suche (Ja / Prüfen / Nein) und kurzer Begründung (Listerien, Toxoplasmose, Salmonellen, Quecksilber, Koffein).
 - **Rezepte:** 50 Rezepte, sortiert nach den Nährstoffen, die im aktuellen Trimester wichtig sind. Jedes Rezept mit Sicherheitshinweis. Im Rezept „♥ Lieblingsrezept“ (kommt öfter in den Wochenplan, Filter „Favoriten“) und „Nicht mehr vorschlagen“ (wieder einblenden über das Zahnrad auf „Heute“).
@@ -27,7 +27,7 @@ Alle Eingaben bleiben nur auf dem Handy (Browser-Speicher). Nach dem ersten Öff
 
 | Datei | Inhalt |
 |---|---|
-| `index.html` | Die ganze App. Oben im Skript stehen die Daten: `RECIPES`, `CRAVINGS`, `FOODS`, `TRIMESTERS`. |
+| `index.html` | Die ganze App. Oben im Skript stehen die Daten: `RECIPES`, `CRAVINGS`, `COMPLAINTS`, `FOODS`, `TRIMESTERS`, `WEEKS`. |
 | `sw.js` | Offline-Speicher. Nach Änderungen an der App `CACHE` hochzählen (`bauchgefuehl-v2` …). |
 | `manifest.webmanifest`, `icon*.png`, `icon.svg` | Name und Symbol für den Startbildschirm. |
 
