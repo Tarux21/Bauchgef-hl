@@ -3,10 +3,11 @@
 Web-App fürs Handy: Ernährung in der Schwangerschaft, einfach gemacht.
 
 - **Heute:** Schwangerschaftswoche (aus dem Geburtstermin), was im aktuellen Trimester wichtig ist, die heutigen Mahlzeiten aus dem Wochenplan und eine Abhak-Liste für Folsäure, Jod usw.
-- **Lust auf:** Heißhunger auf Schokolade, Chips, Pizza, Eis …? Gesunde, schwangerschaftssichere Alternativen mit Rezept und ein Tipp ohne Kochen.
+- **Heute** zeigt außerdem einen Trink-Zähler (6 Gläser à 250 ml = 1,5 l).
+- **Lust & Hilfe:** Reiter „Heißhunger“: Lust auf Schokolade, Chips, Pizza, Eis …? Gesunde, schwangerschaftssichere Alternativen mit Rezept und ein Tipp ohne Kochen. Reiter „Beschwerden“: Tipps und passende Rezepte bei Übelkeit, Sodbrennen, Verstopfung, Wadenkrämpfen und Müdigkeit, jeweils mit Hinweis, wann man zur Ärztin sollte.
 - **Darf ich?:** Lebensmittel-Ampel mit Suche (Ja / Prüfen / Nein) und kurzer Begründung (Listerien, Toxoplasmose, Salmonellen, Quecksilber, Koffein).
-- **Rezepte:** 25 Rezepte, sortiert nach den Nährstoffen, die im aktuellen Trimester wichtig sind. Jedes Rezept mit Sicherheitshinweis.
-- **Woche:** Wochenplan mit automatischem Vorschlag (immer 2× Fisch), jede Mahlzeit änderbar, Einkaufsliste für 1 bis 6 Personen zum Abhaken und Kopieren.
+- **Rezepte:** 50 Rezepte, sortiert nach den Nährstoffen, die im aktuellen Trimester wichtig sind. Jedes Rezept mit Sicherheitshinweis. Im Rezept „♥ Lieblingsrezept“ (kommt öfter in den Wochenplan, Filter „Favoriten“) und „Nicht mehr vorschlagen“ (wieder einblenden über das Zahnrad auf „Heute“).
+- **Woche:** Wochenplan mit automatischem Vorschlag (bis zu 2× Fisch, Thunfisch höchstens 1×), jede Mahlzeit änderbar, Einkaufsliste für 1 bis 6 Personen zum Abhaken und Kopieren.
 
 Alle Eingaben bleiben nur auf dem Handy (Browser-Speicher). Nach dem ersten Öffnen funktioniert die App auch ohne Internet.
 
@@ -29,6 +30,8 @@ Alle Eingaben bleiben nur auf dem Handy (Browser-Speicher). Nach dem ersten Öff
 | `index.html` | Die ganze App. Oben im Skript stehen die Daten: `RECIPES`, `CRAVINGS`, `FOODS`, `TRIMESTERS`. |
 | `sw.js` | Offline-Speicher. Nach Änderungen an der App `CACHE` hochzählen (`bauchgefuehl-v2` …). |
 | `manifest.webmanifest`, `icon*.png`, `icon.svg` | Name und Symbol für den Startbildschirm. |
+
+Persönliche Voreinstellung: Die Rezepte enthalten keine Walnüsse, Mandeln oder Kiwis (Allergie). Lachs und Seelachs sind ausgeblendet, Thunfisch ist erlaubt.
 
 Rezeptmengen sind immer für 2 Portionen angegeben, die App rechnet auf die gewählte Personenzahl um.
 

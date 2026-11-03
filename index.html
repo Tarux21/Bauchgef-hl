@@ -24,6 +24,7 @@
   --ok:#3f7d4a; --warn:#946509; --no:#b0413a;
   --ok-soft:#e1efe3; --warn-soft:#f6ecd4; --no-soft:#f6dedb;
   --shade:rgb(30 25 20 / .45);
+  --water:#2f6f9a; --heart:#c2415e;
   --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --nav-h:62px;
@@ -35,7 +36,7 @@
   --apricot:#eb9a66; --apricot-soft:#43301f;
   --ok:#87c493; --warn:#e0b45a; --no:#ea8a82;
   --ok-soft:#263829; --warn-soft:#3b3220; --no-soft:#422826;
-  --shade:rgb(0 0 0 / .6); color-scheme:dark}}
+  --shade:rgb(0 0 0 / .6); --water:#7fb8de; --heart:#ec7d96; color-scheme:dark}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
@@ -114,9 +115,20 @@ input[type=date],input[type=number],input[type=search],select{border:1px solid v
 .swap .from{color:var(--muted);text-decoration:line-through}
 .swap .arrow{color:var(--apricot);font-weight:700}
 
+/* Trink-Zähler */
+.glasses{display:flex;gap:10px;flex-wrap:wrap}
+.glass{width:38px;height:48px;border:2.5px solid var(--water);border-top-width:0;border-radius:0 0 10px 10px;background:transparent;position:relative;overflow:hidden;padding:0}
+.glass::after{content:"";position:absolute;left:0;right:0;bottom:0;height:0;background:var(--water);transition:height .2s}
+.glass.full::after{height:72%}
+.water-txt{color:var(--water);font-size:14px}
+ul.tips{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.fav{position:absolute;top:12px;right:14px;color:var(--heart);font-size:18px;line-height:1}
+.hidden-chip{text-decoration:line-through;color:var(--muted)}
+
 /* Rezeptliste */
 .rlist{display:flex;flex-direction:column;gap:10px}
-.rcard{display:flex;flex-direction:column;gap:5px;padding:13px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left;width:100%}
+.rcard{position:relative;display:flex;flex-direction:column;gap:5px;padding:13px 36px 13px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left;width:100%}
 .rcard strong{font-size:16px}
 .meta{display:flex;gap:4px 12px;font-size:13px;color:var(--muted);flex-wrap:wrap}
 
@@ -168,7 +180,7 @@ input[type=date],input[type=number],input[type=search],select{border:1px solid v
 
 <nav class="tabs" aria-label="Bereiche"><div class="in">
   <button data-tab="heute"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5"/></svg>Heute</button>
-  <button data-tab="lust"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Lust auf</button>
+  <button data-tab="lust"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Lust &amp; Hilfe</button>
   <button data-tab="ampel"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Darf ich?</button>
   <button data-tab="rezepte"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg>Rezepte</button>
   <button data-tab="woche"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Woche</button>
@@ -190,7 +202,7 @@ const GROUPS = {o:"Obst & Gemüse", k:"Kühlregal", f:"Fleisch & Fisch", b:"Brot
 const TYPES = {f:"Frühstück", h:"Hauptgericht", s:"Snack"};
 
 const RECIPES = [
- {id:"haferbrei", name:"Haferbrei mit Beeren und Leinsamen", type:"f", min:10,
+ {id:"haferbrei", help:["verstopfung","kraempfe"], name:"Haferbrei mit Beeren und Leinsamen", type:"f", min:10,
   ing:[[100,"g","Haferflocken","v"],[400,"ml","Milch","k"],[150,"g","TK-Beeren","t"],[2,"EL","Leinsamen, geschrotet","v"],[1,"Stk","Banane","o"],[1,"Prise","Zimt","g"]],
   steps:["Haferflocken mit der Milch aufkochen und 3 Minuten quellen lassen.","TK-Beeren in einem kleinen Topf mindestens 2 Minuten sprudelnd kochen.","Banane in Scheiben schneiden. Brei mit Beeren, Banane, Leinsamen und Zimt anrichten."],
   safe:"TK-Beeren in der Schwangerschaft immer kurz durchkochen (Noroviren, Hepatitis A).",
@@ -200,22 +212,22 @@ const RECIPES = [
   steps:["Spinat gründlich waschen und in einer Pfanne mit dem Öl zusammenfallen lassen.","Eier verquirlen, salzen und zum Spinat geben.","Rühren, bis das Ei vollständig gestockt ist und nichts mehr feucht glänzt.","Mit Brot und Tomaten servieren."],
   safe:"Eier immer ganz durchgaren, kein weiches oder flüssiges Eigelb (Salmonellen).",
   nut:["Folsäure","Protein","Jod","Eisen"]},
- {id:"joghurtbowl", name:"Joghurt-Bowl mit Apfel und Walnüssen", type:"f", min:5,
-  ing:[[400,"g","Naturjoghurt","k"],[1,"Stk","Apfel","o"],[2,"EL","Walnüsse","v"],[3,"EL","Haferflocken","v"],[1,"TL","Honig","v"]],
-  steps:["Apfel waschen und klein schneiden.","Joghurt in zwei Schalen geben, Apfel, Haferflocken und gehackte Walnüsse darauf.","Mit etwas Honig süßen."],
+ {id:"joghurtbowl", help:["kraempfe"], name:"Joghurt-Bowl mit Apfel und Kürbiskernen", type:"f", min:5,
+  ing:[[400,"g","Naturjoghurt","k"],[1,"Stk","Apfel","o"],[2,"EL","Kürbiskerne","v"],[3,"EL","Haferflocken","v"],[1,"TL","Honig","v"]],
+  steps:["Apfel waschen und klein schneiden.","Joghurt in zwei Schalen geben, Apfel, Haferflocken und Kürbiskerne darauf.","Mit etwas Honig süßen."],
   nut:["Calcium","Protein","Magnesium"]},
  {id:"kaesebrot", name:"Vollkornbrot mit Bergkäse und Paprika", type:"f", min:5,
   ing:[[4,"Scheibe","Vollkornbrot","b"],[2,"EL","Frischkäse","k"],[4,"Scheibe","Bergkäse (Hartkäse)","k"],[1,"Stk","Paprika, rot","o"]],
   steps:["Brot mit Frischkäse bestreichen und mit Käse belegen.","Paprika waschen, in Streifen schneiden und dazu essen."],
   tip:"Passt gut ab dem 2. Trimester für die zusätzlichen rund 250 kcal am Tag. Die Paprika liefert Vitamin C.",
   nut:["Calcium","Protein","Ballaststoffe"]},
- {id:"milchreis", name:"Milder Milchreis mit Apfel und Zimt", type:"f", min:30, tri:[1],
+ {id:"milchreis", help:["uebelkeit","sodbrennen"], name:"Milder Milchreis mit Apfel und Zimt", type:"f", min:30, tri:[1],
   ing:[[100,"g","Milchreis","v"],[500,"ml","Milch","k"],[1,"Stk","Apfel","o"],[1,"Prise","Zimt","g"],[1,"TL","Honig","v"]],
   steps:["Milch mit dem Reis aufkochen, dann bei kleiner Hitze 25 Minuten unter gelegentlichem Rühren quellen lassen.","Apfel reiben und unterheben.","Mit Zimt und etwas Honig abschmecken."],
   tip:"Mild und leicht verdaulich. Tut vielen gut, wenn im 1. Trimester die Übelkeit kommt.",
   nut:["Calcium"]},
 
- {id:"linsenbolo", name:"Linsen-Bolognese mit Vollkornspaghetti", type:"h", min:35,
+ {id:"linsenbolo", help:["muedigkeit","verstopfung"], name:"Linsen-Bolognese mit Vollkornspaghetti", type:"h", min:35,
   ing:[[100,"g","Rote Linsen","v"],[200,"g","Vollkornspaghetti","v"],[1,"Stk","Zwiebel","o"],[1,"Stk","Möhre","o"],[1,"Stk","Paprika, rot","o"],[400,"g","Gehackte Tomaten (Dose)","v"],[1,"EL","Olivenöl","g"],[1,"TL","Oregano","g"],[1,"Prise","Jodsalz","g"]],
   steps:["Zwiebel, Möhre und Paprika fein würfeln und im Öl 5 Minuten anbraten.","Linsen, Tomaten und 200 ml Wasser dazugeben und 15 Minuten köcheln lassen.","In der Zeit die Spaghetti nach Packung kochen.","Soße mit Oregano und Jodsalz abschmecken."],
   tip:"Das Vitamin C aus der Paprika hilft, das Eisen aus den Linsen aufzunehmen.",
@@ -235,22 +247,22 @@ const RECIPES = [
   steps:["Reis nach Packung kochen.","Hähnchen in Streifen schneiden und im Öl rundum braten, bis es innen weiß ist.","Gemüse in Streifen dazugeben und 5 Minuten mitbraten.","Mit Sojasauce abschmecken."],
   safe:"Geflügel ganz durchgaren. Brett und Messer nach rohem Fleisch heiß abwaschen.",
   nut:["Protein","Ballaststoffe","Magnesium"]},
- {id:"rindpfanne", name:"Rindfleisch-Paprika-Pfanne mit Bulgur", type:"h", min:25,
+ {id:"rindpfanne", help:["muedigkeit"], name:"Rindfleisch-Paprika-Pfanne mit Bulgur", type:"h", min:25,
   ing:[[250,"g","Rinderhüfte in Streifen","f"],[150,"g","Bulgur","v"],[2,"Stk","Paprika, rot","o"],[1,"Stk","Zwiebel","o"],[1,"EL","Rapsöl","g"],[1,"TL","Paprikapulver","g"],[1,"Prise","Jodsalz","g"]],
   steps:["Bulgur mit 300 ml kochendem Wasser übergießen und 10 Minuten quellen lassen.","Fleisch im Öl scharf anbraten, bis es innen nicht mehr rosa ist.","Zwiebel und Paprika dazugeben, 5 Minuten braten, würzen.","Mit dem Bulgur servieren."],
   safe:"Rindfleisch ganz durchbraten (Toxoplasmose). Kein rosa Kern.",
   tip:"Rindfleisch liefert gut verwertbares Eisen, die Paprika Vitamin C dazu.",
   nut:["Eisen","Protein","Ballaststoffe"]},
- {id:"curry", name:"Kichererbsen-Spinat-Curry mit Reis", type:"h", min:30,
+ {id:"curry", help:["muedigkeit","kraempfe"], name:"Kichererbsen-Spinat-Curry mit Reis", type:"h", min:30,
   ing:[[1,"Dose","Kichererbsen (400 g)","v"],[200,"g","Blattspinat (TK)","t"],[200,"ml","Kokosmilch","v"],[400,"g","Gehackte Tomaten (Dose)","v"],[1,"Stk","Zwiebel","o"],[1,"Zehe","Knoblauch","o"],[2,"TL","Currypulver","g"],[150,"g","Basmatireis","v"],[1,"Prise","Jodsalz","g"]],
   steps:["Reis nach Packung kochen.","Zwiebel und Knoblauch fein hacken und in etwas Kokosmilch andünsten, Curry kurz mitrösten.","Tomaten, Kichererbsen (abgespült), restliche Kokosmilch und Spinat dazugeben.","10 Minuten köcheln lassen und salzen."],
   nut:["Eisen","Folsäure","Ballaststoffe","Magnesium"]},
- {id:"linsensuppe", name:"Rote-Linsen-Suppe mit Ingwer", type:"h", min:30, tri:[1],
+ {id:"linsensuppe", help:["uebelkeit"], name:"Rote-Linsen-Suppe mit Ingwer", type:"h", min:30, tri:[1],
   ing:[[150,"g","Rote Linsen","v"],[2,"Stk","Möhre","o"],[1,"Stk","Zwiebel","o"],[1,"Stk","Ingwer (2 cm)","o"],[200,"ml","Kokosmilch","v"],[700,"ml","Gemüsebrühe","v"],[1,"Prise","Jodsalz","g"]],
   steps:["Zwiebel, Möhren und Ingwer klein schneiden.","Mit Linsen und Brühe aufkochen und 15 Minuten köcheln lassen.","Kokosmilch dazugeben und fein pürieren.","Mit Jodsalz abschmecken."],
   tip:"Ingwer kann bei Übelkeit helfen. Mild und gut verträglich im 1. Trimester.",
   nut:["Eisen","Folsäure","Ballaststoffe","Protein"]},
- {id:"ofenkartoffel", name:"Ofenkartoffel mit Kräuterquark", type:"h", min:55,
+ {id:"ofenkartoffel", help:["sodbrennen"], name:"Ofenkartoffel mit Kräuterquark", type:"h", min:55,
   ing:[[4,"Stk","Kartoffeln, groß","o"],[250,"g","Magerquark","k"],[100,"g","Naturjoghurt","k"],[1,"Bund","Schnittlauch","o"],[1,"Stk","Salatgurke","o"],[1,"Prise","Jodsalz","g"]],
   steps:["Kartoffeln waschen, mehrfach einstechen und bei 200 °C etwa 50 Minuten backen.","Quark mit Joghurt glatt rühren, Schnittlauch gründlich waschen, schneiden und unterrühren, salzen.","Kartoffeln aufschneiden, Quark hineingeben, Gurke dazu."],
   safe:"Frische Kräuter gründlich waschen (Toxoplasmose, Listerien).",
@@ -271,7 +283,7 @@ const RECIPES = [
   steps:["Ofen auf 220 °C vorheizen.","Süßkartoffeln in Stifte schneiden, mit Öl und Gewürzen mischen.","Mit Abstand auf ein Blech legen und 25 bis 30 Minuten backen, einmal wenden."],
   tip:"Goldgelb statt dunkelbraun backen, dann entsteht weniger Acrylamid.",
   nut:["Ballaststoffe","Magnesium"]},
- {id:"kichererbsen", name:"Knusprige Ofen-Kichererbsen", type:"s", min:30, crave:"chips",
+ {id:"kichererbsen", help:["verstopfung"], name:"Knusprige Ofen-Kichererbsen", type:"s", min:30, crave:"chips",
   ing:[[1,"Dose","Kichererbsen (400 g)","v"],[1,"EL","Olivenöl","g"],[1,"TL","Paprikapulver","g"],[1,"Prise","Jodsalz","g"]],
   steps:["Ofen auf 200 °C vorheizen.","Kichererbsen abspülen und mit einem Tuch gut trocken tupfen.","Mit Öl und Gewürzen mischen und 25 Minuten backen, bis sie knuspern."],
   nut:["Folsäure","Eisen","Ballaststoffe","Protein"]},
@@ -283,9 +295,9 @@ const RECIPES = [
   ing:[[1,"Dose","Kichererbsen (400 g)","v"],[2,"EL","Tahin (Sesammus)","v"],[1,"Stk","Zitrone","o"],[1,"Zehe","Knoblauch","o"],[2,"Stk","Möhre","o"],[1,"Stk","Kohlrabi","o"],[1,"Prise","Jodsalz","g"]],
   steps:["Kichererbsen abspülen und mit Tahin, Zitronensaft, Knoblauch, Salz und 3 EL Wasser fein pürieren.","Gemüse waschen, schälen und in Sticks schneiden."],
   nut:["Folsäure","Eisen","Calcium","Ballaststoffe"]},
- {id:"dattelkugeln", name:"Dattel-Kakao-Kugeln", type:"s", min:15, crave:"schoko",
-  ing:[[150,"g","Datteln, entsteint","v"],[80,"g","Mandeln","v"],[2,"EL","Kakaopulver, ungesüßt","v"],[2,"EL","Kokosraspeln","v"]],
-  steps:["Mandeln im Mixer fein hacken.","Datteln und Kakao dazugeben und mixen, bis eine klebrige Masse entsteht.","12 Kugeln formen und in Kokos wälzen. Im Kühlschrank eine Woche haltbar."],
+ {id:"dattelkugeln", help:["muedigkeit","verstopfung"], name:"Dattel-Kakao-Kugeln", type:"s", min:15, crave:"schoko",
+  ing:[[150,"g","Datteln, entsteint","v"],[60,"g","Haferflocken","v"],[30,"g","Kürbiskerne","v"],[2,"EL","Kakaopulver, ungesüßt","v"],[2,"EL","Kokosraspeln","v"]],
+  steps:["Haferflocken und Kürbiskerne im Mixer fein mahlen.","Datteln und Kakao dazugeben und mixen, bis eine klebrige Masse entsteht.","12 Kugeln formen und in Kokos wälzen. Im Kühlschrank eine Woche haltbar."],
   tip:"Kakao enthält etwas Koffein, bei ein paar Kugeln am Tag aber nur sehr wenig.",
   nut:["Eisen","Magnesium","Ballaststoffe"]},
  {id:"nicecream", name:"Schoko-Bananen-Eis (Nicecream)", type:"s", min:10, crave:"eis",
@@ -297,9 +309,9 @@ const RECIPES = [
   steps:["Beeren 2 Minuten sprudelnd kochen und abkühlen lassen.","Mit Joghurt und Honig pürieren.","In Eisformen füllen und mindestens 4 Stunden gefrieren."],
   safe:"TK-Beeren vorher kurz durchkochen.",
   nut:["Calcium","Protein"]},
- {id:"haferkekse", name:"Bananen-Hafer-Kekse", type:"s", min:25, crave:"kuchen",
-  ing:[[2,"Stk","Banane","o"],[120,"g","Haferflocken","v"],[30,"g","Rosinen","v"],[2,"EL","Walnüsse","v"],[1,"TL","Zimt","g"]],
-  steps:["Ofen auf 180 °C vorheizen.","Bananen mit der Gabel zerdrücken, mit Haferflocken, Rosinen, gehackten Nüssen und Zimt mischen.","12 Häufchen aufs Blech setzen, flach drücken und 15 Minuten backen."],
+ {id:"haferkekse", help:["kraempfe"], name:"Bananen-Hafer-Kekse", type:"s", min:25, crave:"kuchen",
+  ing:[[2,"Stk","Banane","o"],[120,"g","Haferflocken","v"],[30,"g","Rosinen","v"],[2,"EL","Sonnenblumenkerne","v"],[1,"TL","Zimt","g"]],
+  steps:["Ofen auf 180 °C vorheizen.","Bananen mit der Gabel zerdrücken, mit Haferflocken, Rosinen, Sonnenblumenkernen und Zimt mischen.","12 Häufchen aufs Blech setzen, flach drücken und 15 Minuten backen."],
   nut:["Ballaststoffe","Magnesium","Eisen"]},
  {id:"muffins", name:"Apfel-Zimt-Muffins mit Dinkelvollkorn", type:"s", min:40, crave:"kuchen",
   ing:[[200,"g","Dinkelvollkornmehl","v"],[2,"Stk","Apfel","o"],[2,"Stk","Eier","k"],[150,"ml","Milch","k"],[50,"g","Rohrzucker","v"],[50,"ml","Rapsöl","g"],[2,"TL","Backpulver","g"],[1,"TL","Zimt","g"]],
@@ -315,6 +327,129 @@ const RECIPES = [
   ing:[[1,"Stk","Salatgurke","o"],[150,"g","Naturjoghurt","k"],[1,"Stk","Zitrone","o"],[1,"Bund","Dill","o"],[1,"Prise","Jodsalz","g"]],
   steps:["Gurke waschen und in feine Scheiben hobeln.","Joghurt mit Zitronensaft, gewaschenem gehacktem Dill und Salz verrühren.","Mit der Gurke mischen."],
   nut:["Calcium"]},
+ /* ---- Erweiterung: schnelles Frühstück ---- */
+ {id:"overnight", help:["verstopfung","kraempfe"], name:"Overnight Oats mit Banane und Kürbiskernen", type:"f", min:5,
+  ing:[[80,"g","Haferflocken","v"],[200,"ml","Milch","k"],[150,"g","Naturjoghurt","k"],[1,"Stk","Banane","o"],[2,"EL","Kürbiskerne","v"],[1,"Prise","Zimt","g"]],
+  steps:["Am Abend Haferflocken, Milch und Joghurt in zwei Gläsern verrühren und abgedeckt in den Kühlschrank stellen.","Morgens Banane in Scheiben schneiden und mit Kürbiskernen und Zimt darauf geben."],
+  tip:"Abends in 5 Minuten vorbereitet, morgens sofort fertig.",
+  nut:["Ballaststoffe","Magnesium","Calcium","Eisen"]},
+ {id:"avocadotoast", name:"Vollkorntoast mit Avocado und Ei", type:"f", min:12,
+  ing:[[4,"Scheibe","Vollkornbrot","b"],[1,"Stk","Avocado","o"],[2,"Stk","Eier","k"],[1,"Stk","Zitrone","o"],[1,"Prise","Jodsalz","g"]],
+  steps:["Eier 10 Minuten hart kochen, abschrecken und schälen.","Avocado mit etwas Zitronensaft und Jodsalz zerdrücken.","Brot toasten, Avocado darauf streichen, Ei in Scheiben darauflegen."],
+  safe:"Eier hart kochen, das Eigelb muss fest sein.",
+  nut:["Folsäure","Protein","Ballaststoffe"]},
+ {id:"beerenquark", name:"Beeren-Quark mit Haferflocken", type:"f", min:5,
+  ing:[[250,"g","Magerquark","k"],[100,"ml","Milch","k"],[200,"g","Heidelbeeren, frisch","o"],[4,"EL","Haferflocken","v"],[1,"TL","Honig","v"]],
+  steps:["Quark mit Milch und Honig glatt rühren.","Heidelbeeren gründlich waschen.","Quark in Schalen füllen, Beeren und Haferflocken darauf."],
+  tip:"Frische Beeren gründlich waschen. TK-Beeren nur gekocht verwenden.",
+  nut:["Protein","Calcium","Ballaststoffe"]},
+ {id:"knaecke", help:["uebelkeit"], name:"Knäckebrot mit Frischkäse und Gurke", type:"f", min:5,
+  ing:[[8,"Stk","Vollkorn-Knäckebrot","b"],[100,"g","Frischkäse","k"],[1,"Stk","Salatgurke","o"],[1,"Bund","Schnittlauch","o"]],
+  steps:["Knäckebrot mit Frischkäse bestreichen.","Gurke in Scheiben schneiden und darauflegen.","Mit gewaschenem Schnittlauch bestreuen."],
+  tip:"Trocken und mild. Ein Knäckebrot noch im Bett hilft vielen gegen Morgenübelkeit.",
+  nut:["Ballaststoffe","Calcium"]},
+ {id:"pfannkuchen", help:["kraempfe"], name:"Bananen-Hafer-Pfannkuchen", type:"f", min:15,
+  ing:[[2,"Stk","Banane","o"],[2,"Stk","Eier","k"],[80,"g","Haferflocken","v"],[1,"TL","Rapsöl","g"],[1,"Prise","Zimt","g"]],
+  steps:["Bananen zerdrücken, mit Eiern, Haferflocken und Zimt verrühren.","In der geölten Pfanne kleine Pfannkuchen backen, pro Seite 2 bis 3 Minuten.","Sie sind fertig, wenn sie innen nicht mehr feucht sind."],
+  safe:"Pfannkuchen ganz durchbacken, da rohes Ei im Teig ist.",
+  nut:["Ballaststoffe","Protein","Magnesium"]},
+ {id:"hirsebrei", help:["sodbrennen","muedigkeit"], name:"Hirsebrei mit Apfel und Zimt", type:"f", min:20,
+  ing:[[100,"g","Hirse","v"],[400,"ml","Milch","k"],[1,"Stk","Apfel","o"],[1,"Prise","Zimt","g"],[1,"TL","Honig","v"]],
+  steps:["Hirse in einem Sieb heiß abspülen.","Mit der Milch aufkochen und bei kleiner Hitze 15 Minuten quellen lassen.","Apfel reiben, unterheben, mit Zimt und Honig abschmecken."],
+  tip:"Hirse liefert Eisen und Magnesium und ist mild für den Magen.",
+  nut:["Eisen","Magnesium","Calcium"]},
+
+ /* ---- Erweiterung: Feierabendküche ---- */
+ {id:"thunfischpasta", fish:true, tuna:true, name:"Vollkornpenne mit Thunfisch-Tomatensoße", type:"h", min:20,
+  ing:[[200,"g","Vollkornpenne","v"],[1,"Dose","Thunfisch im eigenen Saft (150 g)","v"],[400,"g","Gehackte Tomaten (Dose)","v"],[1,"Stk","Zwiebel","o"],[1,"Zehe","Knoblauch","o"],[1,"EL","Olivenöl","g"],[1,"TL","Oregano","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Penne nach Packung kochen.","Zwiebel und Knoblauch fein hacken und im Öl andünsten.","Tomaten dazugeben und 8 Minuten köcheln lassen.","Thunfisch abtropfen, zerpflücken, unterrühren und kurz miterhitzen. Mit Oregano und Salz abschmecken."],
+  safe:"Thunfisch wegen Quecksilber höchstens etwa 1× pro Woche.",
+  nut:["Protein","Omega-3","Ballaststoffe"]},
+ {id:"thunfischsalat", fish:true, tuna:true, name:"Weiße-Bohnen-Salat mit Thunfisch", type:"h", min:10,
+  ing:[[1,"Dose","Weiße Bohnen (400 g)","v"],[1,"Dose","Thunfisch im eigenen Saft (150 g)","v"],[1,"Stk","Paprika, rot","o"],[1,"Stk","Zwiebel, rot","o"],[1,"Stk","Zitrone","o"],[2,"EL","Olivenöl","g"],[4,"Scheibe","Vollkornbrot","b"],[1,"Prise","Jodsalz","g"]],
+  steps:["Bohnen abspülen und abtropfen lassen.","Paprika und Zwiebel fein würfeln.","Alles mit dem abgetropften Thunfisch, Zitronensaft, Öl und Salz mischen.","Mit Vollkornbrot essen."],
+  safe:"Thunfisch wegen Quecksilber höchstens etwa 1× pro Woche.",
+  nut:["Protein","Eisen","Folsäure","Ballaststoffe"]},
+ {id:"wraps", name:"Hähnchen-Wraps mit Joghurtsoße", type:"h", min:20,
+  ing:[[250,"g","Hähnchenbrust","f"],[4,"Stk","Vollkorn-Wraps","b"],[1,"Stk","Paprika, gelb","o"],[4,"Blatt","Eisbergsalat","o"],[150,"g","Naturjoghurt","k"],[1,"TL","Paprikapulver","g"],[1,"EL","Rapsöl","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Hähnchen in Streifen schneiden, würzen und im Öl braten, bis es innen weiß ist.","Paprika in Streifen schneiden, Salat waschen.","Joghurt mit etwas Salz verrühren.","Wraps kurz erwärmen, füllen und einrollen."],
+  safe:"Hähnchen vollständig durchbraten.",
+  nut:["Protein","Calcium"]},
+ {id:"omelett", name:"Gemüse-Omelett mit Feta", type:"h", min:15,
+  ing:[[4,"Stk","Eier","k"],[100,"g","Feta (pasteurisiert)","k"],[1,"Stk","Zucchini","o"],[8,"Stk","Cherrytomaten","o"],[1,"EL","Olivenöl","g"],[4,"Scheibe","Vollkornbrot","b"]],
+  steps:["Zucchini würfeln und im Öl 4 Minuten braten, Tomaten halbieren und dazugeben.","Eier verquirlen, darübergießen, Feta darüberbröseln.","Mit Deckel bei kleiner Hitze 6 bis 8 Minuten stocken lassen, bis die Oberfläche fest ist.","Mit Brot servieren."],
+  safe:"Omelett ganz stocken lassen. Feta aus pasteurisierter Milch.",
+  nut:["Folsäure","Protein","Calcium"]},
+ {id:"auflauf", name:"Kartoffel-Brokkoli-Auflauf", type:"h", min:45,
+  ing:[[600,"g","Kartoffeln","o"],[400,"g","Brokkoli","o"],[200,"ml","Milch","k"],[100,"g","Gouda am Stück","k"],[1,"Prise","Muskat","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Kartoffeln in Scheiben schneiden und 10 Minuten vorkochen, Brokkoli die letzten 3 Minuten mitgaren.","Ofen auf 200 °C vorheizen.","Gemüse in eine Auflaufform geben, Milch mit Muskat und Salz darübergießen.","Käse reiben, darüberstreuen und 20 Minuten goldbraun überbacken."],
+  nut:["Calcium","Folsäure","Protein"]},
+ {id:"putengeschnetzeltes", name:"Putengeschnetzeltes mit Champignons und Reis", type:"h", min:30,
+  ing:[[250,"g","Putenbrust","f"],[250,"g","Champignons","o"],[150,"g","Naturreis","v"],[1,"Stk","Zwiebel","o"],[100,"ml","Kochsahne","k"],[1,"EL","Rapsöl","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Reis nach Packung kochen.","Pute in Streifen schneiden und im Öl rundum braten, bis sie innen weiß ist. Herausnehmen.","Zwiebel und Pilze in Scheiben im selben Topf 5 Minuten braten.","Sahne dazugeben, Fleisch zurück in den Topf, kurz aufkochen und salzen."],
+  safe:"Pute vollständig durchgaren. Pilze gut durchbraten.",
+  nut:["Protein","Magnesium"]},
+ {id:"chili", help:["muedigkeit","verstopfung"], name:"Mildes Chili sin Carne", type:"h", min:30,
+  ing:[[1,"Dose","Kidneybohnen (400 g)","v"],[100,"g","Rote Linsen","v"],[400,"g","Gehackte Tomaten (Dose)","v"],[1,"Stk","Paprika, rot","o"],[1,"Stk","Zwiebel","o"],[70,"g","Mais (Dose)","v"],[150,"g","Naturreis","v"],[1,"TL","Paprikapulver","g"],[1,"EL","Rapsöl","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Reis nach Packung kochen.","Zwiebel und Paprika würfeln und im Öl andünsten.","Linsen, Tomaten und 250 ml Wasser dazugeben und 12 Minuten köcheln.","Abgespülte Bohnen und Mais dazugeben, 5 Minuten weiterköcheln und würzen."],
+  tip:"Mild gewürzt, damit es auch bei Sodbrennen gut geht. Wer mag, nachschärfen.",
+  nut:["Eisen","Folsäure","Ballaststoffe","Protein"]},
+ {id:"bolognese", help:["muedigkeit"], name:"Spaghetti Bolognese mit Rinderhack", type:"h", min:30,
+  ing:[[250,"g","Rinderhackfleisch","f"],[200,"g","Vollkornspaghetti","v"],[400,"g","Gehackte Tomaten (Dose)","v"],[1,"Stk","Möhre","o"],[1,"Stk","Zwiebel","o"],[1,"EL","Olivenöl","g"],[1,"TL","Oregano","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Zwiebel und Möhre fein würfeln.","Hackfleisch im Öl krümelig braten, bis nichts mehr rosa ist.","Gemüse und Tomaten dazugeben und 15 Minuten köcheln.","Spaghetti kochen, Soße abschmecken."],
+  safe:"Hackfleisch ganz durchbraten.",
+  nut:["Eisen","Protein","Ballaststoffe"]},
+ {id:"gnocchi", name:"Gnocchi-Spinat-Pfanne mit Mozzarella", type:"h", min:15,
+  ing:[[500,"g","Gnocchi (Kühlregal)","k"],[200,"g","Babyspinat","o"],[8,"Stk","Cherrytomaten","o"],[125,"g","Mozzarella (pasteurisiert)","k"],[1,"EL","Olivenöl","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Gnocchi im Öl 6 bis 8 Minuten goldbraun braten.","Gewaschenen Spinat und halbierte Tomaten dazugeben, zusammenfallen lassen.","Mozzarella zerzupfen, darauf verteilen und mit Deckel schmelzen lassen."],
+  nut:["Folsäure","Calcium"]},
+ {id:"quinoabowl", help:["kraempfe","muedigkeit"], name:"Quinoa-Bowl mit Kichererbsen", type:"h", min:20,
+  ing:[[150,"g","Quinoa","v"],[1,"Dose","Kichererbsen (400 g)","v"],[1,"Stk","Paprika, rot","o"],[1,"Stk","Salatgurke","o"],[150,"g","Naturjoghurt","k"],[1,"Stk","Zitrone","o"],[1,"EL","Olivenöl","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Quinoa heiß abspülen und in 300 ml Wasser 15 Minuten garen.","Kichererbsen abspülen, Paprika und Gurke würfeln.","Joghurt mit Zitronensaft und Salz verrühren.","Alles in Schalen anrichten, mit Öl beträufeln."],
+  tip:"Paprika und Zitrone liefern Vitamin C, damit wird das Eisen besser aufgenommen.",
+  nut:["Eisen","Magnesium","Folsäure","Protein"]},
+ {id:"kartoffelsuppe", help:["sodbrennen","uebelkeit"], name:"Milde Kartoffelsuppe", type:"h", min:30,
+  ing:[[600,"g","Kartoffeln","o"],[2,"Stk","Möhre","o"],[1,"Stk","Lauch","o"],[800,"ml","Gemüsebrühe","v"],[100,"ml","Milch","k"],[1,"Prise","Muskat","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Kartoffeln und Möhren schälen und würfeln, Lauch gründlich waschen und in Ringe schneiden.","Mit der Brühe 20 Minuten weich kochen.","Milch dazugeben, grob pürieren und mit Muskat und Salz abschmecken."],
+  tip:"Mild und wenig Fett, gut bei Sodbrennen.",
+  nut:["Ballaststoffe","Magnesium"]},
+ {id:"nudelsuppe", help:["uebelkeit","sodbrennen"], name:"Hühnernudelsuppe", type:"h", min:30,
+  ing:[[200,"g","Hähnchenbrust","f"],[100,"g","Suppennudeln","v"],[2,"Stk","Möhre","o"],[1,"Stk","Lauch","o"],[1000,"ml","Gemüsebrühe","v"],[1,"Prise","Jodsalz","g"]],
+  steps:["Hähnchen in der Brühe 15 Minuten leise köcheln, herausnehmen und klein zupfen.","Möhren und Lauch in Scheiben in die Brühe geben, 5 Minuten garen.","Nudeln dazugeben und nach Packung garen, Fleisch zurück in den Topf."],
+  safe:"Hähnchen vollständig garen.",
+  tip:"Warm, mild und salzig, oft gut verträglich bei Übelkeit.",
+  nut:["Protein"]},
+ {id:"halloumi", name:"Ofengemüse mit Halloumi", type:"h", min:35,
+  ing:[[500,"g","Süßkartoffeln","o"],[1,"Stk","Zucchini","o"],[1,"Stk","Paprika, rot","o"],[250,"g","Halloumi","k"],[2,"EL","Olivenöl","g"],[1,"TL","Paprikapulver","g"]],
+  steps:["Ofen auf 200 °C vorheizen.","Gemüse in Stücke schneiden, mit Öl und Paprikapulver mischen und 20 Minuten backen.","Halloumi in Scheiben dazulegen und weitere 10 Minuten backen."],
+  tip:"Halloumi wird erhitzt gegessen und ist deshalb unbedenklich.",
+  nut:["Calcium","Protein","Ballaststoffe"]},
+
+ /* ---- Erweiterung: Snacks ---- */
+ {id:"pflaumenjoghurt", help:["verstopfung"], name:"Joghurt mit Trockenpflaumen und Leinsamen", type:"s", min:5,
+  ing:[[300,"g","Naturjoghurt","k"],[6,"Stk","Trockenpflaumen","v"],[2,"EL","Leinsamen, geschrotet","v"]],
+  steps:["Trockenpflaumen klein schneiden.","Mit Joghurt und Leinsamen verrühren.","Dazu ein großes Glas Wasser trinken."],
+  tip:"Leinsamen quellen nur mit genug Flüssigkeit, deshalb das Glas Wasser.",
+  nut:["Ballaststoffe","Calcium"]},
+ {id:"apfelerdnuss", help:["kraempfe"], name:"Apfelschnitze mit Erdnussmus", type:"s", min:5,
+  ing:[[2,"Stk","Apfel","o"],[2,"EL","Erdnussmus","v"]],
+  steps:["Äpfel waschen und in Schnitze schneiden.","Zum Dippen mit Erdnussmus servieren."],
+  nut:["Magnesium","Ballaststoffe","Protein"]},
+ {id:"kernmix", help:["kraempfe","muedigkeit"], name:"Kerne-Mix mit Trockenobst", type:"s", min:5,
+  ing:[[50,"g","Kürbiskerne","v"],[50,"g","Sonnenblumenkerne","v"],[40,"g","Rosinen","v"],[40,"g","Aprikosen, getrocknet","v"]],
+  steps:["Kerne in einer Pfanne ohne Fett 3 Minuten rösten und abkühlen lassen.","Mit Rosinen und klein geschnittenen Aprikosen mischen.","In ein Glas füllen, eine kleine Handvoll ist eine Portion."],
+  tip:"Ohne Nüsse, also passend bei Nussallergie.",
+  nut:["Eisen","Magnesium","Ballaststoffe"]},
+ {id:"ingwertee", help:["uebelkeit"], name:"Ingwertee mit Honig", type:"s", min:10,
+  ing:[[1,"Stk","Ingwer (2 cm)","o"],[2,"TL","Honig","v"]],
+  steps:["Ingwer schälen und in dünne Scheiben schneiden.","Mit 500 ml kochendem Wasser übergießen und 8 Minuten ziehen lassen.","Mit Honig süßen. Lauwarm oder kalt schmeckt er bei Übelkeit oft besser."],
+  tip:"Normale Mengen Ingwer gelten als unbedenklich. Keine hoch dosierten Ingwer-Kapseln ohne Rücksprache.",
+  nut:[]},
+ {id:"bananenmilch", help:["kraempfe","sodbrennen"], name:"Bananen-Hafer-Milch", type:"s", min:5,
+  ing:[[2,"Stk","Banane","o"],[400,"ml","Milch","k"],[4,"EL","Haferflocken","v"]],
+  steps:["Alles im Mixer fein pürieren.","Sofort trinken."],
+  tip:"Milch und Haferflocken tun bei Sodbrennen vielen gut.",
+  nut:["Magnesium","Calcium","Ballaststoffe"]},
 ];
 
 const CRAVINGS = [
@@ -328,6 +463,19 @@ const CRAVINGS = [
  {id:"gummi", name:"Gummibärchen", recipes:["trauben","dattelkugeln"], quick:"Eine Handvoll ist in Ordnung. Lakritz nur in kleinen Mengen (Süßholz)."},
  {id:"sauer", name:"Saures", recipes:["gurkensalat"], quick:"Gewürzgurken, Oliven und Sauerkraut aus dem Glas sind erlaubt."},
  {id:"salzig", name:"Salziges", recipes:["popcorn","hummus","kichererbsen"], quick:"Salzstangen oder Laugengebäck gehen gut. Mit Jodsalz würzen hilft beim Jodbedarf."},
+];
+
+const COMPLAINTS = [
+ {id:"uebelkeit", name:"Übelkeit", tips:["Vor dem Aufstehen etwas Trockenes essen, z. B. Zwieback oder Knäckebrot.","Kleine Portionen alle 2 bis 3 Stunden, nie ganz leerer Magen.","Trinken lieber zwischen den Mahlzeiten als dazu.","Ingwertee oder kalte Speisen, die riechen weniger.","Fettiges und stark Gewürztes meiden."],
+   doctor:"Wenn kaum etwas drin bleibt, sie mehrmals täglich erbricht oder Gewicht verliert, bitte bald zur Ärztin."},
+ {id:"sodbrennen", name:"Sodbrennen", tips:["Mehrere kleine Mahlzeiten statt drei großer.","Langsam essen und gut kauen.","2 bis 3 Stunden vor dem Schlafen nichts Großes mehr essen.","Nachts den Oberkörper etwas höher lagern.","Fettiges, Scharfes, Kaffee, Zitrusfrüchte und Kohlensäure können es verstärken.","Ein Glas Milch oder etwas Haferbrei hilft manchen."],
+   doctor:"Mittel gegen Sodbrennen nur nach Rücksprache mit Ärztin oder Hebamme."},
+ {id:"verstopfung", name:"Verstopfung", tips:["Viele Ballaststoffe: Vollkorn, Gemüse, Hülsenfrüchte, Obst.","Geschroteter Leinsamen oder Trockenpflaumen, immer mit viel Wasser.","1,5 bis 2 Liter am Tag trinken.","Jeden Tag bewegen, z. B. ein Spaziergang."],
+   doctor:"Eisentabletten können verstopfen. Dann mit der Ärztin über die Einnahme sprechen."},
+ {id:"kraempfe", name:"Wadenkrämpfe", tips:["Magnesium aus Vollkorn, Haferflocken, Kernen, Hülsenfrüchten und Bananen.","Vor dem Schlafen die Waden sanft dehnen.","Genug trinken."],
+   doctor:"Magnesium-Tabletten nur nach Rücksprache. Bei Schwellung, Rötung oder Schmerz in einem Bein sofort ärztlich abklären lassen."},
+ {id:"muedigkeit", name:"Müdigkeit", tips:["Eisenreich essen: Fleisch, Hülsenfrüchte, Hirse, Vollkorn.","Dazu Vitamin C (Paprika, Obst), Kaffee und Tee nicht direkt zum Essen.","Regelmäßig essen, damit der Blutzucker nicht absackt.","Genug trinken und kurze Pausen einplanen."],
+   doctor:"Starke Müdigkeit kann auf Eisenmangel hinweisen. Den Eisenwert bei der Ärztin prüfen lassen."},
 ];
 
 /* Lebensmittel-Ampel. s: ok | warn | no */
@@ -362,7 +510,7 @@ const FOODS = [
  ["Heiß geräucherte Forelle, Makrele","warn","Nur durcherhitzt essen, z. B. in einer warmen Soße."],
  ["Sushi mit rohem Fisch","no","Roher Fisch: Listerien, Parasiten."],
  ["Sushi vegetarisch oder mit gegartem Fisch","warn","Nur frisch zubereitet aus gutem Laden."],
- ["Thunfisch","warn","Quecksilber. Höchstens selten und in kleinen Mengen."],
+ ["Thunfisch (Dose)","warn","Quecksilber. Höchstens etwa 1 Portion pro Woche. Aus der Dose ist er schon durchgegart."],
  ["Schwertfisch, Hai, Marlin","no","Hohe Quecksilberwerte."],
  ["Hering, Makrele, Sardinen, durchgegart","ok","Fettreicher Fisch mit viel Omega-3."],
  ["Seelachs, Kabeljau","ok","Durchgegart sehr gut für Jod."],
@@ -401,7 +549,8 @@ const FOODS = [
  ["Softeis aus der Maschine","no","Listerien in der Maschine möglich."],
  ["Eis aus der Tiefkühltruhe (abgepackt)","ok","Unbedenklich."],
  ["Schokolade","ok","In Maßen. Zartbitter enthält etwas Koffein."],
- ["Nüsse und Erdnüsse","ok","Wenn keine Allergie besteht. Gute Quelle für Magnesium."],
+ ["Nüsse und Erdnüsse","ok","Nur wenn keine Allergie besteht. Gute Quelle für Magnesium."],
+ ["Kürbis- und Sonnenblumenkerne","ok","Gute Alternative bei Nussallergie, viel Magnesium und Eisen."],
  ["Honig","ok","Für Schwangere unbedenklich (nicht für Babys unter 1 Jahr)."],
  ["Süßstoff","ok","In üblichen Mengen unbedenklich."],
  ["Jodsalz","ok","Sparsam verwenden, aber Jodsalz statt normalem Salz."],
@@ -418,7 +567,7 @@ const TRIMESTERS = {
    prio:["Folsäure","Jod"]},
  2:{name:"2. Trimester", range:"SSW 14 bis 27", focus:[
    ["Eisen","Der Bedarf steigt deutlich. Fleisch 2–3× pro Woche, Hülsenfrüchte, Vollkorn, dazu Vitamin C."],
-   ["Omega-3","1–2× pro Woche Fisch, davon einmal fettreich wie Lachs, immer durchgegart."],
+   ["Omega-3","1–2× pro Woche Fisch, durchgegart. Ohne Fisch nach Rücksprache 200 mg DHA als Kapsel."],
    ["Calcium","Rund 1000 mg am Tag aus Milch, Joghurt und Käse."],
    ["Energie","Ab jetzt etwa 250 kcal mehr am Tag, z. B. ein Käsebrot und ein Apfel."]],
    tip:"Eisentabletten nur nach Blutbild und ärztlichem Rat. Kaffee und schwarzen Tee nicht direkt zum Essen trinken, sie bremsen die Eisenaufnahme.",
@@ -444,8 +593,12 @@ let S = load();
 function load(){
   let s = null;
   try{ s = JSON.parse(localStorage.getItem(KEY) || "null"); }catch(e){}
-  return Object.assign({et:null, persons:2, supps:["Folsäure","Jod"], taken:{}, plan:null, shopDone:{}, shopExtra:[], tab:"heute"}, s || {});
+  s = Object.assign({et:null, persons:2, supps:["Folsäure","Jod"], taken:{}, plan:null, shopDone:{}, tab:"heute", fav:[], hidden:null, water:{}}, s || {});
+  // Voreinstellung: kein Lachs/Seelachs (nur Thunfisch). In den Einstellungen wieder einblendbar.
+  if(!Array.isArray(s.hidden)) s.hidden = ["ofenlachs","seelachs"];
+  return s;
 }
+const visible = r => !S.hidden.includes(r.id);
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 
 /* ============================================================
@@ -469,21 +622,26 @@ function pregnancy(){
    ============================================================ */
 const byId = Object.fromEntries(RECIPES.map(r=>[r.id,r]));
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function weighted(list){ // Favoriten kommen doppelt in den Topf
+  return shuffle(list.flatMap(r => S.fav.includes(r.id) ? [r,r] : [r])).map(r=>r.id).filter((id,i,a)=>a.indexOf(id)===i);
+}
 function makePlan(startNum, tries){
   const P = pregnancy(); const tri = P ? P.tri : 2;
-  const fits = r => !r.tri || r.tri.includes(tri) || tri===1;
+  const fits = r => visible(r) && (!r.tri || r.tri.includes(tri) || tri===1);
   const main = RECIPES.filter(r=>r.type==="h" && fits(r));
-  const fish = shuffle(main.filter(r=>r.fish)).slice(0,2).map(r=>r.id);
-  const other = shuffle(main.filter(r=>!r.fish)).map(r=>r.id);
-  // 14 Hauptmahlzeiten: 2× Fisch (Empfehlung), Rest gemischt, gleiche Gerichte nicht am selben Tag
-  const pool = []; while(pool.length < 12) pool.push(...other);
-  const mains = shuffle(fish.concat(pool.slice(0,12)));
-  const brk = RECIPES.filter(r=>r.type==="f" && fits(r)).map(r=>r.id);
-  const snk = shuffle(RECIPES.filter(r=>r.type==="s").map(r=>r.id));
+  // Fisch: bis zu 2× pro Woche, davon höchstens 1× Thunfisch
+  const fishPick = []; let tuna = 0;
+  for(const id of weighted(main.filter(r=>r.fish))){ const r=byId[id]; if(fishPick.length>=2) break; if(r.tuna){ if(tuna) continue; tuna++; } fishPick.push(id); }
+  const other = weighted(main.filter(r=>!r.fish));
+  const pool = []; while(pool.length < 14 - fishPick.length && other.length) pool.push(...other);
+  const mains = shuffle(fishPick.concat(pool.slice(0, 14 - fishPick.length)));
+  const brk = weighted(RECIPES.filter(r=>r.type==="f" && fits(r)));
+  const snk = weighted(RECIPES.filter(r=>r.type==="s" && visible(r)));
+  const at = (a,i) => a.length ? a[i % a.length] : null;
   const days = [];
-  for(let i=0;i<7;i++) days.push({f: brk[(i + Math.floor(Math.random()*brk.length)) % brk.length], m: mains[i*2], a: mains[i*2+1], s: snk[i % snk.length]});
+  for(let i=0;i<7;i++) days.push({f: at(brk,i), m: mains[i*2]||null, a: mains[i*2+1]||null, s: at(snk,i)});
   // Kein Gericht zweimal am selben Tag: dann neu mischen
-  if(days.some(d=>d.m===d.a) && (tries||0) < 50) return makePlan(startNum, (tries||0)+1);
+  if(days.some(d=>d.m && d.m===d.a) && (tries||0) < 50) return makePlan(startNum, (tries||0)+1);
   return {start: isoFromNum(startNum), days};
 }
 function ensurePlan(){
@@ -539,7 +697,7 @@ function shoppingList(){
    ============================================================ */
 const $app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let ui = {craving:"schoko", rType:"alle", rNut:null, q:"", wTab:"plan"};
+let ui = {craving:"schoko", complaint:"uebelkeit", lTab:"lust", rType:"alle", rNut:null, q:"", wTab:"plan"};
 
 function setTab(t){
   S.tab = t; save();
@@ -554,7 +712,8 @@ function render(){
 
 function recipeCard(r, from){
   const sw = from ? `<div class="swap"><span class="from">${esc(from)}</span><span class="arrow">→</span><strong>${esc(r.name)}</strong></div>` : `<strong>${esc(r.name)}</strong>`;
-  return `<button class="rcard" data-recipe="${r.id}">${sw}
+  const fav = S.fav.includes(r.id) ? `<span class="fav" aria-label="Lieblingsrezept">♥</span>` : "";
+  return `<button class="rcard" data-recipe="${r.id}">${fav}${sw}
     <div class="meta"><span>${r.min} Min.</span><span>${TYPES[r.type]}</span>${r.tri&&r.tri.includes(1)?"<span>gut bei Übelkeit</span>":""}</div>
     <div class="nut-tag">${r.nut.map(esc).join(" · ")}</div></button>`;
 }
@@ -599,6 +758,10 @@ function viewHeute(){
     ${SLOTS.map(([k,lab])=>{ const r=byId[day[k]]; return r?`<button class="meal" data-recipe="${r.id}"><span class="slot">${lab}</span><span class="name">${esc(r.name)}</span><span class="go" aria-hidden="true">›</span></button>`:""; }).join("")}
   </div></section>`;
 
+  const w = S.water[todayISO()] || 0;
+  html += `<section class="panel"><div class="head" style="align-items:baseline"><h2>Getrunken</h2><span class="water-txt"><b>${fmtNum(w*0.25)} l</b> von 1,5 l</span></div>
+    <div class="glasses">${[1,2,3,4,5,6].map(i=>`<button class="glass${i<=w?" full":""}" data-glass="${i}" aria-label="${i} Glas${i>1?"er":""} (${fmtNum(i*0.25)} l)" aria-pressed="${i<=w}"></button>`).join("")}</div>
+    <p class="small muted" style="margin:0">Ein Glas = 250 ml. ${w>=6?"Ziel erreicht, mehr trinken ist auch gut.":"Antippen zum Füllen, nochmal tippen nimmt es zurück."}</p></section>`;
   if(S.supps.length){
     const t = S.taken[todayISO()] || [];
     html += `<section class="view" style="gap:10px"><h2>Heute genommen</h2><div class="supp">${S.supps.map(s=>`<label><input type="checkbox" data-supp="${esc(s)}" ${t.includes(s)?"checked":""}>${esc(s)}</label>`).join("")}</div></section>`;
@@ -608,16 +771,31 @@ function viewHeute(){
 }
 
 function viewLust(){
+  const seg = `<div class="seg" role="group" aria-label="Ansicht"><button data-ltab="lust" aria-pressed="${ui.lTab==="lust"}">Heißhunger</button><button data-ltab="hilfe" aria-pressed="${ui.lTab==="hilfe"}">Beschwerden</button></div>`;
+  if(ui.lTab==="hilfe") return viewHilfe(seg);
   const c = CRAVINGS.find(x=>x.id===ui.craving) || CRAVINGS[0];
-  return `<div class="view">
+  const recs = c.recipes.map(id=>byId[id]).filter(visible);
+  return `<div class="view">${seg}
     <section class="crave-q"><h1>Worauf hast du gerade Lust?</h1>
       <div class="chips">${CRAVINGS.map(x=>`<button class="chip" data-crave="${x.id}" aria-pressed="${x.id===c.id}">${esc(x.name)}</button>`).join("")}</div>
     </section>
     <section class="view" style="gap:10px"><h2>Statt ${esc(c.name)}</h2>
-      <div class="rlist">${c.recipes.map(id=>recipeCard(byId[id], c.name)).join("")}</div>
+      <div class="rlist">${recs.map(r=>recipeCard(r, c.name)).join("") || `<div class="tip">Alle passenden Rezepte sind ausgeblendet. In den Einstellungen kannst du sie wieder einblenden.</div>`}</div>
       <div class="tip"><b>Ohne Kochen:</b> ${esc(c.quick)}</div>
     </section>
     <div class="tip small">Heißhunger ist in der Schwangerschaft normal. Manchmal steckt Durst oder eine zu lange Pause dahinter, ein Glas Wasser und eine kleine Mahlzeit helfen oft. Lust auf Eiswürfel, Erde oder Kreide bitte der Ärztin sagen, das kann auf Eisenmangel hinweisen.</div>
+    ${disclaimer()}</div>`;
+}
+function viewHilfe(seg){
+  const c = COMPLAINTS.find(x=>x.id===ui.complaint) || COMPLAINTS[0];
+  const recs = RECIPES.filter(r=>visible(r) && r.help && r.help.includes(c.id));
+  return `<div class="view">${seg}
+    <section class="crave-q"><h1>Was ist los?</h1>
+      <div class="chips">${COMPLAINTS.map(x=>`<button class="chip" data-complaint="${x.id}" aria-pressed="${x.id===c.id}">${esc(x.name)}</button>`).join("")}</div>
+    </section>
+    <section class="panel"><h2>Bei ${esc(c.name)}</h2><ul class="tips">${c.tips.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></section>
+    <section class="view" style="gap:10px"><h2>Passende Rezepte</h2><div class="rlist">${recs.map(r=>recipeCard(r)).join("") || `<div class="tip">Keine passenden Rezepte eingeblendet.</div>`}</div></section>
+    <div class="safe"><b>Ärztin fragen:</b> ${esc(c.doctor)}</div>
     ${disclaimer()}</div>`;
 }
 
@@ -644,14 +822,15 @@ function viewAmpel(){
 function viewRezepte(){
   const P = pregnancy(); const prio = P ? TRIMESTERS[P.tri].prio : [];
   const nuts = ["Folsäure","Eisen","Jod","Omega-3","Calcium","Ballaststoffe","Protein"];
-  let list = RECIPES.filter(r => (ui.rType==="alle" || r.type===ui.rType) && (!ui.rNut || r.nut.includes(ui.rNut)));
+  let list = RECIPES.filter(r => visible(r) && (ui.rType==="alle" || (ui.rType==="fav" ? S.fav.includes(r.id) : r.type===ui.rType)) && (!ui.rNut || r.nut.includes(ui.rNut)));
   const score = r => r.nut.filter(n=>prio.includes(n)).length + (P && r.tri && r.tri.includes(P.tri) ? 2 : 0);
   list = list.slice().sort((a,b)=>score(b)-score(a));
   return `<div class="view">
     <div><h1>Rezepte</h1>${P?`<p class="muted" style="margin:4px 0 0">Sortiert nach dem, was im ${TRIMESTERS[P.tri].name} wichtig ist: ${prio.join(", ")}.</p>`:""}</div>
-    <div class="chips">${[["alle","Alle"],["f","Frühstück"],["h","Hauptgericht"],["s","Snack"]].map(([k,l])=>`<button class="chip" data-rtype="${k}" aria-pressed="${ui.rType===k}">${l}</button>`).join("")}</div>
+    <div class="chips">${[["alle","Alle"],["fav","♥ Favoriten"],["f","Frühstück"],["h","Hauptgericht"],["s","Snack"]].map(([k,l])=>`<button class="chip" data-rtype="${k}" aria-pressed="${ui.rType===k}">${l}</button>`).join("")}</div>
     <div class="field"><label for="rnut">Nährstoff</label><select id="rnut"><option value="">Alle Nährstoffe</option>${nuts.map(n=>`<option ${ui.rNut===n?"selected":""}>${n}</option>`).join("")}</select></div>
-    <div class="rlist">${list.map(r=>recipeCard(r)).join("") || `<div class="tip">Keine Rezepte für diese Auswahl.</div>`}</div>
+    <div class="rlist">${list.map(r=>recipeCard(r)).join("") || `<div class="tip">${ui.rType==="fav"?"Noch keine Favoriten. Öffne ein Rezept und tippe auf „Lieblingsrezept“.":"Keine Rezepte für diese Auswahl."}</div>`}</div>
+    ${S.hidden.length?`<p class="small muted" style="margin:0">${S.hidden.length} Rezept${S.hidden.length>1?"e sind":" ist"} ausgeblendet. Wieder einblenden geht in den Einstellungen (Zahnrad auf „Heute“).</p>`:""}
     ${disclaimer()}</div>`;
 }
 
@@ -662,11 +841,14 @@ function viewWoche(){
     const ti = todayIndex();
     const days = S.plan.days.map((d,i)=>`<section class="panel day${i===ti?" today":""}"><h3>${WEEKDAYS[i]}<span class="small muted">${fmtDate(isoFromNum(startN+i)).slice(0,6)}${i===ti?" · heute":""}</span></h3>
       ${SLOTS.map(([k,lab,type])=>`<div class="pslot"><span>${lab}</span><select data-day="${i}" data-slot="${k}" aria-label="${WEEKDAYS[i]} ${lab}">
-        <option value="">– nichts –</option>${RECIPES.filter(r=>r.type===type).map(r=>`<option value="${r.id}" ${d[k]===r.id?"selected":""}>${esc(r.name)}</option>`).join("")}
+        <option value="">– nichts –</option>${RECIPES.filter(r=>r.type===type && (visible(r) || d[k]===r.id)).map(r=>`<option value="${r.id}" ${d[k]===r.id?"selected":""}>${esc(r.name)}</option>`).join("")}
       </select></div>`).join("")}</section>`).join("");
-    const fishCount = S.plan.days.reduce((n,d)=>n+["m","a"].filter(k=>byId[d[k]]&&byId[d[k]].fish).length,0);
+    let fishCount=0, tunaCount=0; S.plan.days.forEach(d=>["m","a"].forEach(k=>{const r=byId[d[k]]; if(r&&r.fish){fishCount++; if(r.tuna) tunaCount++;}}));
+    let fishTip;
+    if(!fishCount) fishTip = "Kein Fisch im Plan. Sprich mit der Ärztin, ob eine Omega-3-Kapsel (DHA) sinnvoll ist.";
+    else fishTip = `${fishCount}× Fisch eingeplant${tunaCount?`, davon ${tunaCount}× Thunfisch`:""}.` + (tunaCount>1?" Thunfisch besser höchstens 1× pro Woche (Quecksilber).": fishCount===tunaCount ? " Mehr Thunfisch ist wegen Quecksilber nicht ratsam. Sprich mit der Ärztin, ob zusätzlich eine Omega-3-Kapsel (DHA) sinnvoll ist." : " Empfohlen sind 1–2 Fischmahlzeiten pro Woche.");
     return `<div class="view"><h1>Diese Woche</h1>${seg}
-      <div class="tip">${fishCount>=1?`${fishCount}× Fisch eingeplant.`:"Noch kein Fisch eingeplant."} Empfohlen sind 1–2 Fischmahlzeiten pro Woche.</div>
+      <div class="tip">${fishTip}</div>
       <button class="btn ghost" data-act="newplan">Woche neu vorschlagen</button>
       ${days}${disclaimer()}</div>`;
   }
@@ -696,6 +878,8 @@ function openRecipe(id){
   openSheet(`<div class="head"><h2>${esc(r.name)}</h2><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     <div class="meta"><span>${r.min} Min.</span><span>${TYPES[r.type]}</span><span>für ${S.persons} ${S.persons===1?"Person":"Personen"}</span></div>
     <div class="nut-tag">${r.nut.map(esc).join(" · ")}</div>
+    <div class="btnrow"><button class="btn small ${S.fav.includes(r.id)?"":"ghost"}" data-act="fav" data-id="${r.id}" aria-pressed="${S.fav.includes(r.id)}">♥ Lieblingsrezept</button>
+      <button class="btn small ghost" data-act="hide" data-id="${r.id}">${S.hidden.includes(r.id)?"Wieder vorschlagen":"Nicht mehr vorschlagen"}</button></div>
     ${r.safe?`<div class="safe"><b>Sicher essen:</b> ${esc(r.safe)}</div>`:""}
     <h3>Zutaten</h3><ul class="ing">${ing}</ul>
     <h3>Zubereitung</h3><ol>${r.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
@@ -710,6 +894,8 @@ function openSettings(){
     ${viewSetup(true)}
     <section class="panel"><h3>Erinnerung „Heute genommen“</h3><p class="small muted" style="margin:0">Nur das ankreuzen, was die Ärztin empfohlen hat.</p>
       <div class="supp">${SUPPLEMENTS.map(s=>`<label><input type="checkbox" data-suppcfg="${s}" ${S.supps.includes(s)?"checked":""}>${s}</label>`).join("")}</div></section>
+    <section class="panel"><h3>Ausgeblendete Rezepte</h3>
+      ${S.hidden.length?`<p class="small muted" style="margin:0">Antippen blendet das Rezept wieder ein.</p><div class="chips">${S.hidden.map(id=>byId[id]?`<button class="chip hidden-chip" data-unhide="${id}">${esc(byId[id].name)} ✕</button>`:"").join("")}</div>`:`<p class="small muted" style="margin:0">Keine. Im Rezept auf „Nicht mehr vorschlagen“ tippen, um eines auszublenden.</p>`}</section>
     <section class="panel"><h3>Daten</h3><p class="small muted" style="margin:0">Alles wird nur auf diesem Handy gespeichert. Es wird nichts verschickt.</p>
       <button class="btn ghost" data-act="reset">Alle Daten löschen</button><div id="resetConfirm" hidden><p style="margin:0">Wirklich alles löschen? Termin, Wochenplan und Haken gehen verloren.</p><div class="head" style="justify-content:flex-start"><button class="btn" data-act="resetYes" style="background:var(--no)">Ja, löschen</button><button class="btn ghost" data-act="resetNo">Abbrechen</button></div></div></section>`, "Einstellungen");
 }
@@ -737,6 +923,10 @@ document.addEventListener("click", e => {
   if(b.dataset.crave){ ui.craving=b.dataset.crave; render(); return; }
   if(b.dataset.rtype){ ui.rType=b.dataset.rtype; render(); return; }
   if(b.dataset.wtab){ ui.wTab=b.dataset.wtab; render(); return; }
+  if(b.dataset.ltab){ ui.lTab=b.dataset.ltab; render(); return; }
+  if(b.dataset.complaint){ ui.complaint=b.dataset.complaint; render(); return; }
+  if(b.dataset.glass){ const k=todayISO(), n=+b.dataset.glass, cur=S.water[k]||0; S.water={[k]: n===cur ? n-1 : n}; save(); render(); return; }
+  if(b.dataset.unhide){ S.hidden=S.hidden.filter(x=>x!==b.dataset.unhide); save(); openSettings(); render(); return; }
   const a = b.dataset.act;
   if(a==="close") closeSheet();
   else if(a==="settings") openSettings();
@@ -749,6 +939,8 @@ document.addEventListener("click", e => {
     if(diff > 300 || diff < -30){ toast("Das Datum liegt zu weit weg. Bitte prüfen."); return; }
     S.et = v; save(); closeSheet(); render(); toast("Termin gespeichert: "+fmtDate(v));
   }
+  else if(a==="fav"){ const id=b.dataset.id; S.fav = S.fav.includes(id) ? S.fav.filter(x=>x!==id) : S.fav.concat(id); save(); openRecipe(id); render(); toast(S.fav.includes(id)?"Als Lieblingsrezept gemerkt":"Aus Favoriten entfernt"); }
+  else if(a==="hide"){ const id=b.dataset.id; const on=!S.hidden.includes(id); S.hidden = on ? S.hidden.concat(id) : S.hidden.filter(x=>x!==id); save(); closeSheet(); render(); toast(on?"Wird nicht mehr vorgeschlagen. Rückgängig in den Einstellungen.":"Wird wieder vorgeschlagen"); }
   else if(a==="newplan"){ S.plan = makePlan(dayNum(S.plan.start)); S.shopDone={}; save(); render(); toast("Neuer Wochenplan erstellt"); }
   else if(a==="addplan"){
     const d=+document.getElementById("apDay").value, s=document.getElementById("apSlot").value;
