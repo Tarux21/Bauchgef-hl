@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bauchgefühl</title>
+<meta name="description" content="Ernährung in der Schwangerschaft: Wochenbegleiter, Heißhunger-Alternativen, Lebensmittel-Ampel, Rezepte und Einkaufsliste.">
+<meta name="theme-color" content="#4f7a5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bauchgefühl">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: eine Spalte wie eine Handy-App, feste Navigation unten, Rezepte öffnen als Blatt von unten */
+:root{
+  --bg:#f3f1ee; --fg:#26221f; --muted:#6c645d; --line:#ddd6cf;
+  --surface:#ffffff; --card:#f7f4f1;
+  --sage:#4f7a5c; --sage-soft:#e2ece4; --on-sage:#ffffff;
+  --apricot:#c8662f; --apricot-soft:#fbe7da;
+  --ok:#3f7d4a; --warn:#946509; --no:#b0413a;
+  --ok-soft:#e1efe3; --warn-soft:#f6ecd4; --no-soft:#f6dedb;
+  --shade:rgb(30 25 20 / .45);
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --nav-h:62px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#1a1817; --fg:#efe9e4; --muted:#a99f97; --line:#3a3532;
+  --surface:#24211f; --card:#2e2a28;
+  --sage:#8bb898; --sage-soft:#2b3a2f; --on-sage:#13201a;
+  --apricot:#eb9a66; --apricot-soft:#43301f;
+  --ok:#87c493; --warn:#e0b45a; --no:#ea8a82;
+  --ok-soft:#263829; --warn-soft:#3b3220; --no-soft:#422826;
+  --shade:rgb(0 0 0 / .6); color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--sage);outline-offset:2px}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:26px;font-weight:700}
+h2{font-size:20px;font-weight:700}
+h3{font-size:16px;font-weight:700}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.label{font-size:12px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+
+main{max-width:560px;margin:0 auto;
+  padding-top:calc(env(safe-area-inset-top,0px) + 18px);
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 24px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px))}
+.view{display:flex;flex-direction:column;gap:18px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.head p{margin:4px 0 0}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:12px;width:42px;height:42px;display:grid;place-items:center;flex:none}
+.iconbtn svg{width:20px;height:20px;stroke:var(--fg)}
+
+/* Navigation */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-h)}
+nav.tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11.5px;color:var(--muted);font-weight:500}
+nav.tabs button svg{width:22px;height:22px;stroke:currentColor}
+nav.tabs button[aria-current="page"]{color:var(--sage);font-weight:600}
+
+/* Karten & Bausteine */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:14px;background:var(--surface)}
+.chip[aria-pressed="true"]{background:var(--sage);border-color:var(--sage);color:var(--on-sage);font-weight:600}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:600;background:var(--sage);color:var(--on-sage)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)}
+.btn.small{padding:7px 12px;font-size:14px}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)} .p-warn{background:var(--warn-soft);color:var(--warn)} .p-no{background:var(--no-soft);color:var(--no)}
+.nut-tag{font-size:12px;color:var(--sage);font-weight:600}
+input[type=date],input[type=number],input[type=search],select{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:600;font-size:14px}
+
+/* Heute */
+.week{background:var(--sage-soft);border-radius:20px;padding:16px;display:flex;gap:16px;align-items:center}
+.ring{width:96px;height:96px;flex:none}
+.ring .track{stroke:var(--surface)} .ring .bar{stroke:var(--sage)}
+.ring text{font-family:var(--display);font-weight:700;fill:var(--sage)}
+.week .big{font-family:var(--display);font-weight:700;font-size:28px;line-height:1.1}
+.nut{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.nut div{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 12px;font-size:13.5px;min-width:0}
+.nut b{display:block;font-size:15px;color:var(--sage);margin-bottom:2px}
+.meals{display:flex;flex-direction:column}
+.meal{display:grid;grid-template-columns:86px 1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line);text-align:left;background:none;border-left:0;border-right:0;border-top:0;width:100%}
+.meal:last-child{border-bottom:0}
+.meal .slot{color:var(--muted);font-size:14px}
+.meal .name{font-weight:500;min-width:0}
+.meal .go{color:var(--muted)}
+.supp{display:flex;flex-wrap:wrap;gap:8px}
+.supp label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:7px 13px;background:var(--surface);font-size:14px}
+.supp input{width:18px;height:18px;accent-color:var(--sage)}
+.tip{background:var(--card);border-radius:14px;padding:12px 14px;font-size:14.5px}
+
+/* Lust auf */
+.crave-q{background:var(--apricot-soft);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.crave-q h1{color:var(--apricot)}
+.crave-q .chip{border-color:transparent}
+.crave-q .chip[aria-pressed="true"]{background:var(--apricot);color:var(--surface)}
+.swap{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.swap .from{color:var(--muted);text-decoration:line-through}
+.swap .arrow{color:var(--apricot);font-weight:700}
+
+/* Rezeptliste */
+.rlist{display:flex;flex-direction:column;gap:10px}
+.rcard{display:flex;flex-direction:column;gap:5px;padding:13px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left;width:100%}
+.rcard strong{font-size:16px}
+.meta{display:flex;gap:4px 12px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+
+/* Ampel */
+.search{position:relative}
+.search input{padding-left:40px;font-size:17px;border:2px solid var(--sage);border-radius:14px;padding-block:12px}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:20px;height:20px;stroke:var(--muted)}
+.frow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:11px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.frow .why{display:block;font-size:13.5px;color:var(--muted);margin-top:2px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
+
+/* Woche */
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--card);border-radius:12px;padding:4px;gap:4px}
+.seg button{border:0;background:none;border-radius:9px;padding:9px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgb(0 0 0 / .12)}
+.day{display:flex;flex-direction:column;gap:2px}
+.day h3{display:flex;justify-content:space-between;align-items:baseline}
+.day.today{border-color:var(--sage)}
+.pslot{display:grid;grid-template-columns:86px 1fr;gap:8px;align-items:center}
+.pslot span{font-size:14px;color:var(--muted)}
+.pslot select{padding:8px 10px;font-size:14.5px}
+.shop-group{display:flex;flex-direction:column;gap:2px}
+.shop-item{display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid var(--line)}
+.shop-item:last-child{border-bottom:0}
+.shop-item input{width:20px;height:20px;accent-color:var(--sage);flex:none}
+.shop-item .amt{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:14px}
+.shop-item.done .nm{text-decoration:line-through;color:var(--muted)}
+
+/* Rezept-Blatt */
+.sheet{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;background:var(--shade)}
+.sheet .box{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow:auto;border-radius:22px 22px 0 0;
+  padding:18px max(18px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
+.sheet .grab{width:44px;height:5px;border-radius:9px;background:var(--line);margin:0 auto}
+.sheet ul,.sheet ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.ing{list-style:none;padding:0!important}
+.ing li{display:grid;grid-template-columns:90px 1fr;gap:8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.ing li span:first-child{color:var(--muted);font-variant-numeric:tabular-nums}
+.safe{background:var(--warn-soft);color:var(--fg);border-radius:12px;padding:10px 12px;font-size:14.5px}
+.safe b{color:var(--warn)}
+.addplan{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:60;font-size:14px;max-width:90%}
+.disclaimer{font-size:12.5px;color:var(--muted);text-align:center;padding-top:4px}
+@media (prefers-reduced-motion:no-preference){.sheet .box{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<nav class="tabs" aria-label="Bereiche"><div class="in">
+  <button data-tab="heute"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5"/></svg>Heute</button>
+  <button data-tab="lust"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Lust auf</button>
+  <button data-tab="ampel"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Darf ich?</button>
+  <button data-tab="rezepte"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg>Rezepte</button>
+  <button data-tab="woche"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Woche</button>
+</div></nav>
+
+<div id="sheet" class="sheet" hidden><div class="box" role="dialog" aria-modal="true" id="sheetBox"></div></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+"use strict";
+/* ============================================================
+   DATEN
+   Mengen in Rezepten immer für 2 Portionen.
+   Zutat: [Menge, Einheit, Name, Gruppe]
+   Gruppen: o Obst & Gemüse, k Kühlregal, f Fleisch & Fisch, b Brot,
+            v Vorrat, t Tiefkühl, g Gewürze & Grundvorrat
+   ============================================================ */
+const GROUPS = {o:"Obst & Gemüse", k:"Kühlregal", f:"Fleisch & Fisch", b:"Brot & Backwaren", v:"Vorrat", t:"Tiefkühl", g:"Gewürze & Grundvorrat"};
+const TYPES = {f:"Frühstück", h:"Hauptgericht", s:"Snack"};
+
+const RECIPES = [
+ {id:"haferbrei", name:"Haferbrei mit Beeren und Leinsamen", type:"f", min:10,
+  ing:[[100,"g","Haferflocken","v"],[400,"ml","Milch","k"],[150,"g","TK-Beeren","t"],[2,"EL","Leinsamen, geschrotet","v"],[1,"Stk","Banane","o"],[1,"Prise","Zimt","g"]],
+  steps:["Haferflocken mit der Milch aufkochen und 3 Minuten quellen lassen.","TK-Beeren in einem kleinen Topf mindestens 2 Minuten sprudelnd kochen.","Banane in Scheiben schneiden. Brei mit Beeren, Banane, Leinsamen und Zimt anrichten."],
+  safe:"TK-Beeren in der Schwangerschaft immer kurz durchkochen (Noroviren, Hepatitis A).",
+  nut:["Ballaststoffe","Calcium","Magnesium","Eisen"]},
+ {id:"ruehrei", name:"Rührei mit Spinat auf Vollkornbrot", type:"f", min:15,
+  ing:[[4,"Stk","Eier","k"],[100,"g","Babyspinat","o"],[4,"Scheibe","Vollkornbrot","b"],[8,"Stk","Cherrytomaten","o"],[1,"TL","Rapsöl","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Spinat gründlich waschen und in einer Pfanne mit dem Öl zusammenfallen lassen.","Eier verquirlen, salzen und zum Spinat geben.","Rühren, bis das Ei vollständig gestockt ist und nichts mehr feucht glänzt.","Mit Brot und Tomaten servieren."],
+  safe:"Eier immer ganz durchgaren, kein weiches oder flüssiges Eigelb (Salmonellen).",
+  nut:["Folsäure","Protein","Jod","Eisen"]},
+ {id:"joghurtbowl", name:"Joghurt-Bowl mit Apfel und Walnüssen", type:"f", min:5,
+  ing:[[400,"g","Naturjoghurt","k"],[1,"Stk","Apfel","o"],[2,"EL","Walnüsse","v"],[3,"EL","Haferflocken","v"],[1,"TL","Honig","v"]],
+  steps:["Apfel waschen und klein schneiden.","Joghurt in zwei Schalen geben, Apfel, Haferflocken und gehackte Walnüsse darauf.","Mit etwas Honig süßen."],
+  nut:["Calcium","Protein","Magnesium"]},
+ {id:"kaesebrot", name:"Vollkornbrot mit Bergkäse und Paprika", type:"f", min:5,
+  ing:[[4,"Scheibe","Vollkornbrot","b"],[2,"EL","Frischkäse","k"],[4,"Scheibe","Bergkäse (Hartkäse)","k"],[1,"Stk","Paprika, rot","o"]],
+  steps:["Brot mit Frischkäse bestreichen und mit Käse belegen.","Paprika waschen, in Streifen schneiden und dazu essen."],
+  tip:"Passt gut ab dem 2. Trimester für die zusätzlichen rund 250 kcal am Tag. Die Paprika liefert Vitamin C.",
+  nut:["Calcium","Protein","Ballaststoffe"]},
+ {id:"milchreis", name:"Milder Milchreis mit Apfel und Zimt", type:"f", min:30, tri:[1],
+  ing:[[100,"g","Milchreis","v"],[500,"ml","Milch","k"],[1,"Stk","Apfel","o"],[1,"Prise","Zimt","g"],[1,"TL","Honig","v"]],
+  steps:["Milch mit dem Reis aufkochen, dann bei kleiner Hitze 25 Minuten unter gelegentlichem Rühren quellen lassen.","Apfel reiben und unterheben.","Mit Zimt und etwas Honig abschmecken."],
+  tip:"Mild und leicht verdaulich. Tut vielen gut, wenn im 1. Trimester die Übelkeit kommt.",
+  nut:["Calcium"]},
+
+ {id:"linsenbolo", name:"Linsen-Bolognese mit Vollkornspaghetti", type:"h", min:35,
+  ing:[[100,"g","Rote Linsen","v"],[200,"g","Vollkornspaghetti","v"],[1,"Stk","Zwiebel","o"],[1,"Stk","Möhre","o"],[1,"Stk","Paprika, rot","o"],[400,"g","Gehackte Tomaten (Dose)","v"],[1,"EL","Olivenöl","g"],[1,"TL","Oregano","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Zwiebel, Möhre und Paprika fein würfeln und im Öl 5 Minuten anbraten.","Linsen, Tomaten und 200 ml Wasser dazugeben und 15 Minuten köcheln lassen.","In der Zeit die Spaghetti nach Packung kochen.","Soße mit Oregano und Jodsalz abschmecken."],
+  tip:"Das Vitamin C aus der Paprika hilft, das Eisen aus den Linsen aufzunehmen.",
+  nut:["Eisen","Folsäure","Ballaststoffe","Protein"]},
+ {id:"ofenlachs", name:"Ofenlachs mit Brokkoli und Kartoffelspalten", type:"h", min:40, fish:true,
+  ing:[[2,"Stk","Lachsfilet (je 125 g)","f"],[500,"g","Kartoffeln","o"],[300,"g","Brokkoli","o"],[1,"Stk","Zitrone","o"],[1,"EL","Rapsöl","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Ofen auf 200 °C vorheizen. Kartoffeln in Spalten schneiden, mit Öl und Salz mischen und 15 Minuten backen.","Lachs und Brokkoli-Röschen dazulegen und weitere 15 bis 18 Minuten garen.","Der Lachs ist fertig, wenn er innen nicht mehr glasig ist und sich leicht zerteilen lässt.","Mit Zitronenspalten servieren."],
+  safe:"Lachs vollständig durchgaren. Kein glasiger Kern, kein Räucher- oder Graved-Lachs.",
+  nut:["Omega-3","Vitamin D","Jod","Folsäure"]},
+ {id:"seelachs", name:"Seelachs mit Kartoffel-Möhren-Stampf", type:"h", min:30, fish:true,
+  ing:[[2,"Stk","Seelachsfilet (je 125 g)","f"],[500,"g","Kartoffeln","o"],[3,"Stk","Möhre","o"],[100,"ml","Milch","k"],[1,"EL","Rapsöl","g"],[1,"Stk","Zitrone","o"],[1,"Prise","Jodsalz","g"]],
+  steps:["Kartoffeln und Möhren schälen, würfeln und in Salzwasser 20 Minuten weich kochen.","Fisch trocken tupfen, salzen und im Öl pro Seite 4 bis 5 Minuten braten, bis er innen weiß und blättrig ist.","Gemüse abgießen, mit warmer Milch zu Stampf verarbeiten.","Mit Zitrone servieren."],
+  safe:"Fisch durchgaren, bis er sich in Lamellen löst.",
+  nut:["Jod","Protein","Vitamin D"]},
+ {id:"haehnchen", name:"Hähnchen-Gemüse-Pfanne mit Naturreis", type:"h", min:30,
+  ing:[[250,"g","Hähnchenbrust","f"],[150,"g","Naturreis","v"],[1,"Stk","Zucchini","o"],[1,"Stk","Paprika, gelb","o"],[1,"Stk","Möhre","o"],[2,"EL","Sojasauce","v"],[1,"EL","Rapsöl","g"]],
+  steps:["Reis nach Packung kochen.","Hähnchen in Streifen schneiden und im Öl rundum braten, bis es innen weiß ist.","Gemüse in Streifen dazugeben und 5 Minuten mitbraten.","Mit Sojasauce abschmecken."],
+  safe:"Geflügel ganz durchgaren. Brett und Messer nach rohem Fleisch heiß abwaschen.",
+  nut:["Protein","Ballaststoffe","Magnesium"]},
+ {id:"rindpfanne", name:"Rindfleisch-Paprika-Pfanne mit Bulgur", type:"h", min:25,
+  ing:[[250,"g","Rinderhüfte in Streifen","f"],[150,"g","Bulgur","v"],[2,"Stk","Paprika, rot","o"],[1,"Stk","Zwiebel","o"],[1,"EL","Rapsöl","g"],[1,"TL","Paprikapulver","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Bulgur mit 300 ml kochendem Wasser übergießen und 10 Minuten quellen lassen.","Fleisch im Öl scharf anbraten, bis es innen nicht mehr rosa ist.","Zwiebel und Paprika dazugeben, 5 Minuten braten, würzen.","Mit dem Bulgur servieren."],
+  safe:"Rindfleisch ganz durchbraten (Toxoplasmose). Kein rosa Kern.",
+  tip:"Rindfleisch liefert gut verwertbares Eisen, die Paprika Vitamin C dazu.",
+  nut:["Eisen","Protein","Ballaststoffe"]},
+ {id:"curry", name:"Kichererbsen-Spinat-Curry mit Reis", type:"h", min:30,
+  ing:[[1,"Dose","Kichererbsen (400 g)","v"],[200,"g","Blattspinat (TK)","t"],[200,"ml","Kokosmilch","v"],[400,"g","Gehackte Tomaten (Dose)","v"],[1,"Stk","Zwiebel","o"],[1,"Zehe","Knoblauch","o"],[2,"TL","Currypulver","g"],[150,"g","Basmatireis","v"],[1,"Prise","Jodsalz","g"]],
+  steps:["Reis nach Packung kochen.","Zwiebel und Knoblauch fein hacken und in etwas Kokosmilch andünsten, Curry kurz mitrösten.","Tomaten, Kichererbsen (abgespült), restliche Kokosmilch und Spinat dazugeben.","10 Minuten köcheln lassen und salzen."],
+  nut:["Eisen","Folsäure","Ballaststoffe","Magnesium"]},
+ {id:"linsensuppe", name:"Rote-Linsen-Suppe mit Ingwer", type:"h", min:30, tri:[1],
+  ing:[[150,"g","Rote Linsen","v"],[2,"Stk","Möhre","o"],[1,"Stk","Zwiebel","o"],[1,"Stk","Ingwer (2 cm)","o"],[200,"ml","Kokosmilch","v"],[700,"ml","Gemüsebrühe","v"],[1,"Prise","Jodsalz","g"]],
+  steps:["Zwiebel, Möhren und Ingwer klein schneiden.","Mit Linsen und Brühe aufkochen und 15 Minuten köcheln lassen.","Kokosmilch dazugeben und fein pürieren.","Mit Jodsalz abschmecken."],
+  tip:"Ingwer kann bei Übelkeit helfen. Mild und gut verträglich im 1. Trimester.",
+  nut:["Eisen","Folsäure","Ballaststoffe","Protein"]},
+ {id:"ofenkartoffel", name:"Ofenkartoffel mit Kräuterquark", type:"h", min:55,
+  ing:[[4,"Stk","Kartoffeln, groß","o"],[250,"g","Magerquark","k"],[100,"g","Naturjoghurt","k"],[1,"Bund","Schnittlauch","o"],[1,"Stk","Salatgurke","o"],[1,"Prise","Jodsalz","g"]],
+  steps:["Kartoffeln waschen, mehrfach einstechen und bei 200 °C etwa 50 Minuten backen.","Quark mit Joghurt glatt rühren, Schnittlauch gründlich waschen, schneiden und unterrühren, salzen.","Kartoffeln aufschneiden, Quark hineingeben, Gurke dazu."],
+  safe:"Frische Kräuter gründlich waschen (Toxoplasmose, Listerien).",
+  nut:["Calcium","Protein","Magnesium"]},
+ {id:"pizza", name:"Fladenbrot-Pizza mit Gemüse", type:"h", min:25, crave:"pizza",
+  ing:[[2,"Stk","Vollkorn-Fladenbrot oder Wraps","b"],[150,"g","Passierte Tomaten","v"],[125,"g","Mozzarella (pasteurisiert)","k"],[1,"Stk","Paprika, rot","o"],[100,"g","Champignons","o"],[70,"g","Mais (Dose)","v"],[1,"TL","Oregano","g"]],
+  steps:["Ofen auf 220 °C vorheizen.","Fladen mit Tomaten bestreichen, mit Oregano würzen.","Gemüse in Scheiben darauf, Mozzarella zerzupfen und verteilen.","10 bis 12 Minuten backen, bis der Käse blubbert."],
+  safe:"Mozzarella aus pasteurisierter Milch nehmen (steht auf der Packung).",
+  nut:["Calcium","Ballaststoffe","Protein"]},
+ {id:"burger", name:"Burger im Vollkornbrötchen", type:"h", min:25, crave:"burger",
+  ing:[[250,"g","Rinderhackfleisch","f"],[2,"Stk","Vollkornbrötchen","b"],[1,"Stk","Tomate","o"],[2,"Blatt","Eisbergsalat","o"],[2,"Scheibe","Gouda","k"],[1,"EL","Ketchup","v"],[1,"Prise","Jodsalz","g"]],
+  steps:["Hackfleisch salzen und zu zwei flachen Patties formen.","In der Pfanne pro Seite 4 bis 5 Minuten braten, bis sie innen grau statt rosa sind. Am Ende Käse darauflegen.","Salat und Tomate waschen und schneiden.","Brötchen kurz rösten und belegen."],
+  safe:"Hackfleisch ganz durchbraten, innen nicht mehr rosa (Toxoplasmose, E. coli).",
+  nut:["Eisen","Protein","Calcium"]},
+
+ {id:"suesskartoffel", name:"Süßkartoffel-Pommes aus dem Ofen", type:"s", min:35, crave:"pommes",
+  ing:[[500,"g","Süßkartoffeln","o"],[1,"EL","Rapsöl","g"],[1,"TL","Paprikapulver","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Ofen auf 220 °C vorheizen.","Süßkartoffeln in Stifte schneiden, mit Öl und Gewürzen mischen.","Mit Abstand auf ein Blech legen und 25 bis 30 Minuten backen, einmal wenden."],
+  tip:"Goldgelb statt dunkelbraun backen, dann entsteht weniger Acrylamid.",
+  nut:["Ballaststoffe","Magnesium"]},
+ {id:"kichererbsen", name:"Knusprige Ofen-Kichererbsen", type:"s", min:30, crave:"chips",
+  ing:[[1,"Dose","Kichererbsen (400 g)","v"],[1,"EL","Olivenöl","g"],[1,"TL","Paprikapulver","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Ofen auf 200 °C vorheizen.","Kichererbsen abspülen und mit einem Tuch gut trocken tupfen.","Mit Öl und Gewürzen mischen und 25 Minuten backen, bis sie knuspern."],
+  nut:["Folsäure","Eisen","Ballaststoffe","Protein"]},
+ {id:"popcorn", name:"Popcorn aus dem Topf", type:"s", min:10, crave:"salzig",
+  ing:[[50,"g","Popcornmais","v"],[1,"EL","Rapsöl","g"],[1,"Prise","Jodsalz","g"]],
+  steps:["Öl und Mais in einen großen Topf geben, Deckel drauf.","Bei mittlerer Hitze erhitzen und den Topf ab und zu rütteln, bis es kaum noch knallt.","Mit Jodsalz würzen."],
+  nut:["Ballaststoffe","Magnesium"]},
+ {id:"hummus", name:"Hummus mit Gemüsesticks", type:"s", min:10, crave:"salzig",
+  ing:[[1,"Dose","Kichererbsen (400 g)","v"],[2,"EL","Tahin (Sesammus)","v"],[1,"Stk","Zitrone","o"],[1,"Zehe","Knoblauch","o"],[2,"Stk","Möhre","o"],[1,"Stk","Kohlrabi","o"],[1,"Prise","Jodsalz","g"]],
+  steps:["Kichererbsen abspülen und mit Tahin, Zitronensaft, Knoblauch, Salz und 3 EL Wasser fein pürieren.","Gemüse waschen, schälen und in Sticks schneiden."],
+  nut:["Folsäure","Eisen","Calcium","Ballaststoffe"]},
+ {id:"dattelkugeln", name:"Dattel-Kakao-Kugeln", type:"s", min:15, crave:"schoko",
+  ing:[[150,"g","Datteln, entsteint","v"],[80,"g","Mandeln","v"],[2,"EL","Kakaopulver, ungesüßt","v"],[2,"EL","Kokosraspeln","v"]],
+  steps:["Mandeln im Mixer fein hacken.","Datteln und Kakao dazugeben und mixen, bis eine klebrige Masse entsteht.","12 Kugeln formen und in Kokos wälzen. Im Kühlschrank eine Woche haltbar."],
+  tip:"Kakao enthält etwas Koffein, bei ein paar Kugeln am Tag aber nur sehr wenig.",
+  nut:["Eisen","Magnesium","Ballaststoffe"]},
+ {id:"nicecream", name:"Schoko-Bananen-Eis (Nicecream)", type:"s", min:10, crave:"eis",
+  ing:[[3,"Stk","Banane","o"],[1,"EL","Kakaopulver, ungesüßt","v"],[2,"EL","Erdnussmus","v"],[3,"EL","Milch","k"]],
+  steps:["Bananen am Vortag in Scheiben schneiden und einfrieren.","Gefrorene Scheiben mit Kakao, Erdnussmus und Milch im Mixer cremig pürieren.","Sofort löffeln."],
+  nut:["Magnesium","Ballaststoffe"]},
+ {id:"joghurteis", name:"Joghurt-Beeren-Eis am Stiel", type:"s", min:15, crave:"eis",
+  ing:[[300,"g","Naturjoghurt","k"],[200,"g","TK-Beeren","t"],[2,"EL","Honig","v"]],
+  steps:["Beeren 2 Minuten sprudelnd kochen und abkühlen lassen.","Mit Joghurt und Honig pürieren.","In Eisformen füllen und mindestens 4 Stunden gefrieren."],
+  safe:"TK-Beeren vorher kurz durchkochen.",
+  nut:["Calcium","Protein"]},
+ {id:"haferkekse", name:"Bananen-Hafer-Kekse", type:"s", min:25, crave:"kuchen",
+  ing:[[2,"Stk","Banane","o"],[120,"g","Haferflocken","v"],[30,"g","Rosinen","v"],[2,"EL","Walnüsse","v"],[1,"TL","Zimt","g"]],
+  steps:["Ofen auf 180 °C vorheizen.","Bananen mit der Gabel zerdrücken, mit Haferflocken, Rosinen, gehackten Nüssen und Zimt mischen.","12 Häufchen aufs Blech setzen, flach drücken und 15 Minuten backen."],
+  nut:["Ballaststoffe","Magnesium","Eisen"]},
+ {id:"muffins", name:"Apfel-Zimt-Muffins mit Dinkelvollkorn", type:"s", min:40, crave:"kuchen",
+  ing:[[200,"g","Dinkelvollkornmehl","v"],[2,"Stk","Apfel","o"],[2,"Stk","Eier","k"],[150,"ml","Milch","k"],[50,"g","Rohrzucker","v"],[50,"ml","Rapsöl","g"],[2,"TL","Backpulver","g"],[1,"TL","Zimt","g"]],
+  steps:["Ofen auf 180 °C vorheizen, Muffinform vorbereiten.","Eier, Milch, Zucker und Öl verrühren, Mehl, Backpulver und Zimt unterrühren.","Äpfel raspeln und unterheben, in 12 Förmchen füllen.","20 bis 25 Minuten backen. Ein Holzstäbchen muss sauber herauskommen."],
+  safe:"Den rohen Teig nicht naschen, er enthält rohe Eier.",
+  nut:["Ballaststoffe","Calcium"]},
+ {id:"trauben", name:"Gefrorene Weintrauben", type:"s", min:5, crave:"gummi",
+  ing:[[300,"g","Weintrauben, kernlos","o"]],
+  steps:["Trauben gründlich waschen und trocken tupfen.","Halbieren, auf einem Teller verteilen und 2 Stunden einfrieren.","Direkt aus dem Gefrierfach naschen."],
+  tip:"Fast wie Fruchtgummi, nur mit Ballaststoffen.",
+  nut:["Ballaststoffe"]},
+ {id:"gurkensalat", name:"Gurkensalat mit Dill und Zitrone", type:"s", min:10, crave:"sauer",
+  ing:[[1,"Stk","Salatgurke","o"],[150,"g","Naturjoghurt","k"],[1,"Stk","Zitrone","o"],[1,"Bund","Dill","o"],[1,"Prise","Jodsalz","g"]],
+  steps:["Gurke waschen und in feine Scheiben hobeln.","Joghurt mit Zitronensaft, gewaschenem gehacktem Dill und Salz verrühren.","Mit der Gurke mischen."],
+  nut:["Calcium"]},
+];
+
+const CRAVINGS = [
+ {id:"schoko", name:"Schokolade", recipes:["dattelkugeln","nicecream","haferkekse"], quick:"Zwei Stücke Zartbitterschokolade sind völlig in Ordnung. Kakao enthält nur wenig Koffein."},
+ {id:"eis", name:"Eis", recipes:["nicecream","joghurteis"], quick:"Abgepacktes Eis aus der Tiefkühltruhe ist erlaubt. Softeis aus der Maschine besser meiden (Listerien)."},
+ {id:"chips", name:"Chips", recipes:["kichererbsen","popcorn","hummus"], quick:"Eine kleine Schale ab und zu ist kein Problem. Achte auf genug Wasser dazu."},
+ {id:"pizza", name:"Pizza", recipes:["pizza"], quick:"Pizza vom Italiener geht, wenn sie heiß aus dem Ofen kommt. Belag ohne Salami, Parmaschinken oder rohe Eier wählen."},
+ {id:"burger", name:"Burger", recipes:["burger","suesskartoffel"], quick:"Im Restaurant nach „durchgebraten“ fragen. Keine selbstgemachten Soßen mit rohem Ei."},
+ {id:"pommes", name:"Pommes", recipes:["suesskartoffel"], quick:"Goldgelb statt dunkel frittiert ist besser (weniger Acrylamid)."},
+ {id:"kuchen", name:"Kuchen & Kekse", recipes:["haferkekse","muffins"], quick:"Gebackener Kuchen ist sicher. Tiramisu und Cremes mit rohem Ei meiden."},
+ {id:"gummi", name:"Gummibärchen", recipes:["trauben","dattelkugeln"], quick:"Eine Handvoll ist in Ordnung. Lakritz nur in kleinen Mengen (Süßholz)."},
+ {id:"sauer", name:"Saures", recipes:["gurkensalat"], quick:"Gewürzgurken, Oliven und Sauerkraut aus dem Glas sind erlaubt."},
+ {id:"salzig", name:"Salziges", recipes:["popcorn","hummus","kichererbsen"], quick:"Salzstangen oder Laugengebäck gehen gut. Mit Jodsalz würzen hilft beim Jodbedarf."},
+];
+
+/* Lebensmittel-Ampel. s: ok | warn | no */
+const FOODS = [
+ // Milch & Käse
+ ["Milch, pasteurisiert oder H-Milch","ok","Unbedenklich, gute Calciumquelle."],
+ ["Rohmilch / Vorzugsmilch","no","Listerien. Nur abgekocht verwenden."],
+ ["Mozzarella (pasteurisiert)","ok","Auf „aus pasteurisierter Milch“ achten."],
+ ["Parmesan, Bergkäse, Gouda (Hartkäse)","ok","Lang gereifte Hartkäse sind auch aus Rohmilch möglich. Rinde entfernen."],
+ ["Feta / Schafskäse","warn","Nur aus pasteurisierter Milch. Packung prüfen."],
+ ["Camembert / Brie aus Rohmilch","no","Listerien-Gefahr."],
+ ["Camembert / Brie (pasteurisiert)","warn","Rinde entfernen oder im Ofen überbacken."],
+ ["Käse mit Rotschmiere (Romadur, Limburger, Münster)","no","Listerien auf der Rinde."],
+ ["Frischkäse, Quark, Hüttenkäse","ok","Aus pasteurisierter Milch unbedenklich."],
+ ["Ricotta, Mascarpone","ok","Aus pasteurisierter Milch, gekühlt und rasch verbrauchen."],
+ ["Joghurt","ok","Unbedenklich, gute Calcium- und Eiweißquelle."],
+ ["Geriebener Käse aus der Tüte","warn","Am besten erhitzt essen (überbacken)."],
+ // Fleisch & Wurst
+ ["Hackfleisch, durchgebraten","ok","Innen grau, nicht mehr rosa."],
+ ["Steak medium oder rare","no","Toxoplasmose. Nur ganz durchgebraten."],
+ ["Mett, Tatar, Carpaccio","no","Rohes Fleisch: Toxoplasmose, Listerien."],
+ ["Salami, Teewurst, Mettwurst","no","Rohwurst kann Toxoplasmen und Listerien enthalten. Auf heißer Pizza durchgebacken gilt als geringeres Risiko, besser trotzdem meiden."],
+ ["Parmaschinken, Serrano, Lachsschinken","no","Roher Schinken: Toxoplasmose, Listerien."],
+ ["Kochschinken","ok","Möglichst frisch aufgeschnitten kaufen und rasch verbrauchen."],
+ ["Leber","warn","Sehr viel Vitamin A. Im 1. Trimester meiden, danach höchstens selten."],
+ ["Leberwurst","warn","Enthält Leber (Vitamin A). Nur selten und in kleinen Mengen."],
+ ["Hähnchen, Pute","ok","Vollständig durchgaren."],
+ ["Fleischsalat, Feinkostsalate von der Theke","warn","Listerien möglich. Abgepackt kaufen, kühl lagern, schnell essen."],
+ // Fisch
+ ["Lachs, durchgegart","ok","Sehr gut: Omega-3, Vitamin D, Jod. 1–2× pro Woche Fisch."],
+ ["Räucherlachs, Graved Lachs","no","Kalt geräuchert oder gebeizt: Listerien."],
+ ["Heiß geräucherte Forelle, Makrele","warn","Nur durcherhitzt essen, z. B. in einer warmen Soße."],
+ ["Sushi mit rohem Fisch","no","Roher Fisch: Listerien, Parasiten."],
+ ["Sushi vegetarisch oder mit gegartem Fisch","warn","Nur frisch zubereitet aus gutem Laden."],
+ ["Thunfisch","warn","Quecksilber. Höchstens selten und in kleinen Mengen."],
+ ["Schwertfisch, Hai, Marlin","no","Hohe Quecksilberwerte."],
+ ["Hering, Makrele, Sardinen, durchgegart","ok","Fettreicher Fisch mit viel Omega-3."],
+ ["Seelachs, Kabeljau","ok","Durchgegart sehr gut für Jod."],
+ ["Garnelen, gekocht","ok","Nur vollständig gegart."],
+ ["Austern, rohe Meeresfrüchte","no","Roh: Noroviren, Bakterien."],
+ ["Fischstäbchen","ok","Gut durchbraten."],
+ // Eier & Soßen
+ ["Eier, hart gekocht oder durchgebraten","ok","Eigelb fest."],
+ ["Weiches Ei, Spiegelei mit flüssigem Eigelb","no","Salmonellen."],
+ ["Tiramisu, Mousse au Chocolat (mit rohem Ei)","no","Rohes Ei: Salmonellen."],
+ ["Mayonnaise aus dem Glas","ok","Industriell mit pasteurisiertem Ei hergestellt."],
+ ["Selbstgemachte Mayonnaise, Aioli","no","Rohes Ei."],
+ ["Sauce Hollandaise, selbstgemacht","warn","Eigelb wird oft nicht ausreichend erhitzt. Fertigprodukte sind unbedenklich."],
+ // Obst & Gemüse
+ ["Obst und Gemüse, gewaschen","ok","Gründlich waschen (Toxoplasmose von Erde)."],
+ ["Abgepackter, geschnittener Salat","warn","Listerien möglich. Besser frischen Salat selbst waschen und schneiden."],
+ ["Sprossen und Keimlinge, roh","no","Bakterien. Nur durchgegart."],
+ ["TK-Beeren","warn","Vor dem Essen kurz durchkochen."],
+ ["Melone, vorgeschnitten","warn","Lieber ganze Melone kaufen und selbst schneiden."],
+ ["Frische Kräuter","ok","Gründlich waschen."],
+ ["Pilze","ok","Gut durchgaren."],
+ ["Hülsenfrüchte (Linsen, Bohnen, Kichererbsen)","ok","Sehr gut: Eisen, Folsäure, Ballaststoffe."],
+ ["Gewürzgurken, Oliven, Sauerkraut","ok","Gegen Lust auf Saures."],
+ // Getränke
+ ["Kaffee","warn","Bis 200 mg Koffein am Tag, das sind etwa 2 Tassen Filterkaffee."],
+ ["Schwarzer und grüner Tee, Matcha","warn","Enthält Koffein, zählt zu den 200 mg dazu."],
+ ["Cola","warn","Koffein und viel Zucker. Nur selten."],
+ ["Energy-Drinks","no","Viel Koffein und weitere Zusätze."],
+ ["Alkohol (Wein, Bier, Sekt)","no","Kein Alkohol in der Schwangerschaft, auch keine kleinen Mengen."],
+ ["Alkoholfreies Bier","warn","Kann bis 0,5 % Alkohol enthalten. Sorten mit 0,0 % sind in Ordnung."],
+ ["Frisch gepresster Saft vom Hofladen (nicht pasteurisiert)","warn","Kann Keime enthalten. Pasteurisierten Saft wählen oder selbst frisch pressen."],
+ ["Kräutertee (Fenchel, Kamille, Rooibos)","ok","In normalen Mengen unbedenklich. Abwechseln."],
+ ["Ingwertee","ok","Kann gegen Übelkeit helfen."],
+ // Sonstiges
+ ["Lakritz","warn","Süßholz. Nur kleine Mengen."],
+ ["Softeis aus der Maschine","no","Listerien in der Maschine möglich."],
+ ["Eis aus der Tiefkühltruhe (abgepackt)","ok","Unbedenklich."],
+ ["Schokolade","ok","In Maßen. Zartbitter enthält etwas Koffein."],
+ ["Nüsse und Erdnüsse","ok","Wenn keine Allergie besteht. Gute Quelle für Magnesium."],
+ ["Honig","ok","Für Schwangere unbedenklich (nicht für Babys unter 1 Jahr)."],
+ ["Süßstoff","ok","In üblichen Mengen unbedenklich."],
+ ["Jodsalz","ok","Sparsam verwenden, aber Jodsalz statt normalem Salz."],
+ ["Fertigsalate aus dem Kühlregal (Nudelsalat, Kartoffelsalat)","warn","Listerien möglich. Frisch selbst machen ist sicherer."],
+];
+
+const TRIMESTERS = {
+ 1:{name:"1. Trimester", range:"SSW 1 bis 13", focus:[
+   ["Folsäure","Täglich 400 µg als Tablette, mindestens bis Ende des 1. Trimesters. Dazu grünes Gemüse und Hülsenfrüchte."],
+   ["Jod","Jodsalz verwenden. Zusätzlich 100 bis 150 µg als Tablette nach Rücksprache mit der Ärztin."],
+   ["Energie","Noch kein Mehrbedarf. Lieber öfter kleine Mahlzeiten."],
+   ["Übelkeit","Trockene Snacks wie Zwieback, Ingwertee, nicht mit leerem Magen aufstehen."]],
+   tip:"Hygiene zählt jetzt besonders: Fleisch und Eier durchgaren, Obst, Gemüse und Kräuter gründlich waschen.",
+   prio:["Folsäure","Jod"]},
+ 2:{name:"2. Trimester", range:"SSW 14 bis 27", focus:[
+   ["Eisen","Der Bedarf steigt deutlich. Fleisch 2–3× pro Woche, Hülsenfrüchte, Vollkorn, dazu Vitamin C."],
+   ["Omega-3","1–2× pro Woche Fisch, davon einmal fettreich wie Lachs, immer durchgegart."],
+   ["Calcium","Rund 1000 mg am Tag aus Milch, Joghurt und Käse."],
+   ["Energie","Ab jetzt etwa 250 kcal mehr am Tag, z. B. ein Käsebrot und ein Apfel."]],
+   tip:"Eisentabletten nur nach Blutbild und ärztlichem Rat. Kaffee und schwarzen Tee nicht direkt zum Essen trinken, sie bremsen die Eisenaufnahme.",
+   prio:["Eisen","Omega-3","Calcium"]},
+ 3:{name:"3. Trimester", range:"SSW 28 bis 40", focus:[
+   ["Eisen","Der Bedarf bleibt hoch. Vitamin C zum Essen hilft bei der Aufnahme."],
+   ["Omega-3","Wichtig für Gehirn und Augen des Babys. Ohne Fisch nach Rücksprache 200 mg DHA als Kapsel."],
+   ["Ballaststoffe","Gegen Verstopfung: Vollkorn, Gemüse, Leinsamen und etwa 1,5 Liter trinken."],
+   ["Energie","Etwa 500 kcal mehr am Tag. Bei Sodbrennen kleine Portionen, abends leicht essen."]],
+   tip:"Bei Sodbrennen helfen oft mehrere kleine Mahlzeiten, langsam essen und nach dem Essen nicht gleich hinlegen.",
+   prio:["Eisen","Omega-3","Ballaststoffe"]},
+};
+
+const SUPPLEMENTS = ["Folsäure","Jod","Eisen","Vitamin D","DHA"];
+const SLOTS = [["f","Frühstück","f"],["m","Mittag","h"],["a","Abend","h"],["s","Snack","s"]];
+const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+
+/* ============================================================
+   SPEICHER (nur auf diesem Gerät)
+   ============================================================ */
+const KEY = "bauchgefuehl.v1";
+let S = load();
+function load(){
+  let s = null;
+  try{ s = JSON.parse(localStorage.getItem(KEY) || "null"); }catch(e){}
+  return Object.assign({et:null, persons:2, supps:["Folsäure","Jod"], taken:{}, plan:null, shopDone:{}, shopExtra:[], tab:"heute"}, s || {});
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+/* ============================================================
+   DATUM & SSW
+   ============================================================ */
+function todayISO(d=new Date()){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function dayNum(iso){ const [y,m,d]=iso.split("-").map(Number); return Math.round(Date.UTC(y,m-1,d)/864e5); }
+function isoFromNum(n){ const d=new Date(n*864e5); return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0"); }
+function fmtDate(iso){ const [y,m,d]=iso.split("-"); return d+"."+m+"."+y; }
+function mondayNum(n){ const wd=(new Date(n*864e5).getUTCDay()+6)%7; return n-wd; }
+function pregnancy(){
+  if(!S.et) return null;
+  const pd = 280 - (dayNum(S.et) - dayNum(todayISO()));
+  const w = Math.floor(pd/7), d = pd - w*7;
+  const tri = pd < 98 ? 1 : pd < 196 ? 2 : 3;
+  return {pd, w, d, tri, left: dayNum(S.et) - dayNum(todayISO())};
+}
+
+/* ============================================================
+   WOCHENPLAN
+   ============================================================ */
+const byId = Object.fromEntries(RECIPES.map(r=>[r.id,r]));
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function makePlan(startNum, tries){
+  const P = pregnancy(); const tri = P ? P.tri : 2;
+  const fits = r => !r.tri || r.tri.includes(tri) || tri===1;
+  const main = RECIPES.filter(r=>r.type==="h" && fits(r));
+  const fish = shuffle(main.filter(r=>r.fish)).slice(0,2).map(r=>r.id);
+  const other = shuffle(main.filter(r=>!r.fish)).map(r=>r.id);
+  // 14 Hauptmahlzeiten: 2× Fisch (Empfehlung), Rest gemischt, gleiche Gerichte nicht am selben Tag
+  const pool = []; while(pool.length < 12) pool.push(...other);
+  const mains = shuffle(fish.concat(pool.slice(0,12)));
+  const brk = RECIPES.filter(r=>r.type==="f" && fits(r)).map(r=>r.id);
+  const snk = shuffle(RECIPES.filter(r=>r.type==="s").map(r=>r.id));
+  const days = [];
+  for(let i=0;i<7;i++) days.push({f: brk[(i + Math.floor(Math.random()*brk.length)) % brk.length], m: mains[i*2], a: mains[i*2+1], s: snk[i % snk.length]});
+  // Kein Gericht zweimal am selben Tag: dann neu mischen
+  if(days.some(d=>d.m===d.a) && (tries||0) < 50) return makePlan(startNum, (tries||0)+1);
+  return {start: isoFromNum(startNum), days};
+}
+function ensurePlan(){
+  const mon = mondayNum(dayNum(todayISO()));
+  if(!S.plan || dayNum(S.plan.start) !== mon){ S.plan = makePlan(mon); S.shopDone = {}; save(); }
+}
+function todayIndex(){ return dayNum(todayISO()) - dayNum(S.plan.start); }
+
+/* ============================================================
+   EINKAUFSLISTE
+   ============================================================ */
+function fmtNum(x){ const r = Math.round(x*100)/100; return String(r).replace(".",","); }
+function scaleAmount(q,u,factor){
+  let v = q*factor;
+  if(["Stk","Dose","Zehe","Scheibe","Bund","Blatt"].includes(u)) v = Math.ceil(v*2)/2;
+  else if(u==="g"||u==="ml") v = Math.round(v/5)*5;
+  return v;
+}
+// EL/TL werden mit g bzw. ml derselben Zutat zusammengezählt (ungefähre Umrechnung).
+const SPOON = {ml:{EL:15,TL:5}, g:{EL:10,TL:4}};
+function shoppingList(){
+  const f = S.persons/2, byName = {};
+  S.plan.days.forEach(d => ["f","m","a","s"].forEach(k => {
+    const r = byId[d[k]]; if(!r) return;
+    r.ing.forEach(([q,u,n,g]) => {
+      const it = byName[n] = byName[n] || {n,g,units:{}};
+      it.units[u] = (it.units[u]||0) + q*f;
+    });
+  }));
+  const out = {};
+  Object.values(byName).forEach(it => {
+    const U = it.units;
+    const base = U.ml!==undefined ? "ml" : U.g!==undefined ? "g" : null;
+    if(base){ ["EL","TL"].forEach(sp => { if(U[sp]){ U[base] += U[sp]*SPOON[base][sp]; delete U[sp]; } }); }
+    else if(U.EL!==undefined && U.TL!==undefined){ U.EL += U.TL/3; delete U.TL; }
+    const parts = [];
+    Object.entries(U).forEach(([u,q]) => {
+      if(u==="Prise") return;
+      q = scaleAmount(q,u,1);
+      if(u==="EL"||u==="TL") q = Math.ceil(q*2)/2;
+      if(u==="g" && q>=1000) parts.push(fmtNum(q/1000)+" kg");
+      else if(u==="ml" && q>=1000) parts.push(fmtNum(q/1000)+" l");
+      else parts.push(fmtNum(q)+" "+u);
+    });
+    (out[it.g] = out[it.g] || []).push({key:it.n, n:it.n, amt:parts.join(" + ")});
+  });
+  Object.values(out).forEach(a=>a.sort((x,y)=>x.n.localeCompare(y.n,"de")));
+  return out;
+}
+
+/* ============================================================
+   ANSICHT
+   ============================================================ */
+const $app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let ui = {craving:"schoko", rType:"alle", rNut:null, q:"", wTab:"plan"};
+
+function setTab(t){
+  S.tab = t; save();
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab===t ? "page" : "false"));
+  render(); window.scrollTo(0,0);
+}
+function render(){
+  ensurePlan();
+  const v = {heute:viewHeute, lust:viewLust, ampel:viewAmpel, rezepte:viewRezepte, woche:viewWoche}[S.tab] || viewHeute;
+  $app.innerHTML = v();
+}
+
+function recipeCard(r, from){
+  const sw = from ? `<div class="swap"><span class="from">${esc(from)}</span><span class="arrow">→</span><strong>${esc(r.name)}</strong></div>` : `<strong>${esc(r.name)}</strong>`;
+  return `<button class="rcard" data-recipe="${r.id}">${sw}
+    <div class="meta"><span>${r.min} Min.</span><span>${TYPES[r.type]}</span>${r.tri&&r.tri.includes(1)?"<span>gut bei Übelkeit</span>":""}</div>
+    <div class="nut-tag">${r.nut.map(esc).join(" · ")}</div></button>`;
+}
+
+function viewSetup(compact){
+  return `<section class="panel" id="setup">
+    <h2>${compact ? "Termin ändern" : "Willkommen bei Bauchgefühl"}</h2>
+    ${compact ? "" : `<p class="muted" style="margin:0">Trag den errechneten Geburtstermin ein. Daraus berechnet die App die Schwangerschaftswoche und zeigt passende Tipps.</p>`}
+    <div class="field"><label for="et">Errechneter Geburtstermin (ET)</label><input type="date" id="et" value="${S.et||""}"></div>
+    <div class="field"><label for="lmp">Oder: erster Tag der letzten Periode</label><input type="date" id="lmp"></div>
+    <button class="btn" data-act="saveEt">Speichern</button>
+  </section>`;
+}
+
+function viewHeute(){
+  const P = pregnancy();
+  const gear = `<button class="iconbtn" data-act="settings" aria-label="Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>`;
+  const now = new Date();
+  const hello = now.getHours()<11 ? "Guten Morgen" : now.getHours()<18 ? "Hallo" : "Guten Abend";
+  let html = `<div class="head"><div><h1>${hello}</h1><p class="muted">${WEEKDAYS[(now.getDay()+6)%7]}, ${fmtDate(todayISO())}</p></div>${gear}</div>`;
+  if(!P){ return `<div class="view">${html}${viewSetup(false)}${disclaimer()}</div>`; }
+
+  const T = TRIMESTERS[P.tri];
+  const C = 2*Math.PI*42, frac = Math.max(0,Math.min(1,P.pd/280));
+  let leftTxt;
+  if(P.left > 0){ const lw=Math.floor(P.left/7), ld=P.left%7; leftTxt = `noch ${lw} Wochen${ld?` und ${ld} Tag${ld>1?"e":""}`:""} bis zum ET`; }
+  else if(P.left === 0) leftTxt = "Heute ist der errechnete Termin";
+  else leftTxt = `${-P.left} Tag${P.left<-1?"e":""} über dem ET`;
+  html += `<section class="week" aria-label="Schwangerschaftswoche">
+    <svg class="ring" viewBox="0 0 96 96" role="img" aria-label="${P.w} von 40 Wochen">
+      <circle class="track" cx="48" cy="48" r="42" fill="none" stroke-width="8"/>
+      <circle class="bar" cx="48" cy="48" r="42" fill="none" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(C*frac).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 48 48)"/>
+      <text x="48" y="56" text-anchor="middle" font-size="26">${Math.max(0,P.w)}</text>
+    </svg>
+    <div><div class="label">Schwangerschaftswoche</div><div class="big">SSW ${Math.max(0,P.w)}+${P.d}</div><div class="small">${T.name} · ${leftTxt}</div></div>
+  </section>`;
+
+  html += `<section class="view" style="gap:10px"><h2>Jetzt wichtig</h2><div class="nut">${T.focus.map(([b,t])=>`<div><b>${esc(b)}</b>${esc(t)}</div>`).join("")}</div></section>`;
+
+  const di = todayIndex(), day = S.plan.days[di];
+  html += `<section class="panel"><div class="head"><h2>Heute im Plan</h2><button class="btn ghost small" data-tab="woche">Woche</button></div><div class="meals">
+    ${SLOTS.map(([k,lab])=>{ const r=byId[day[k]]; return r?`<button class="meal" data-recipe="${r.id}"><span class="slot">${lab}</span><span class="name">${esc(r.name)}</span><span class="go" aria-hidden="true">›</span></button>`:""; }).join("")}
+  </div></section>`;
+
+  if(S.supps.length){
+    const t = S.taken[todayISO()] || [];
+    html += `<section class="view" style="gap:10px"><h2>Heute genommen</h2><div class="supp">${S.supps.map(s=>`<label><input type="checkbox" data-supp="${esc(s)}" ${t.includes(s)?"checked":""}>${esc(s)}</label>`).join("")}</div></section>`;
+  }
+  html += `<div class="tip"><b>Tipp für das ${T.name}:</b> ${esc(T.tip)}</div>`;
+  return `<div class="view">${html}${disclaimer()}</div>`;
+}
+
+function viewLust(){
+  const c = CRAVINGS.find(x=>x.id===ui.craving) || CRAVINGS[0];
+  return `<div class="view">
+    <section class="crave-q"><h1>Worauf hast du gerade Lust?</h1>
+      <div class="chips">${CRAVINGS.map(x=>`<button class="chip" data-crave="${x.id}" aria-pressed="${x.id===c.id}">${esc(x.name)}</button>`).join("")}</div>
+    </section>
+    <section class="view" style="gap:10px"><h2>Statt ${esc(c.name)}</h2>
+      <div class="rlist">${c.recipes.map(id=>recipeCard(byId[id], c.name)).join("")}</div>
+      <div class="tip"><b>Ohne Kochen:</b> ${esc(c.quick)}</div>
+    </section>
+    <div class="tip small">Heißhunger ist in der Schwangerschaft normal. Manchmal steckt Durst oder eine zu lange Pause dahinter, ein Glas Wasser und eine kleine Mahlzeit helfen oft. Lust auf Eiswürfel, Erde oder Kreide bitte der Ärztin sagen, das kann auf Eisenmangel hinweisen.</div>
+    ${disclaimer()}</div>`;
+}
+
+function norm(s){ return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/ß/g,"ss"); }
+function foodRows(){
+  const q = norm(ui.q.trim());
+  const order = {no:0,warn:1,ok:2};
+  let list = FOODS.filter(f => !q || norm(f[0]+" "+f[2]).includes(q));
+  if(!q) list = list.slice().sort((a,b)=>order[a[1]]-order[b[1]]);
+  const lab = {ok:["Ja","p-ok"],warn:["Prüfen","p-warn"],no:["Nein","p-no"]};
+  return list.length ? list.map(([n,s,why])=>`<div class="frow"><div>${esc(n)}<span class="why">${esc(why)}</span></div><span class="pill ${lab[s][1]}">${lab[s][0]}</span></div>`).join("")
+    : `<div class="tip">Zu „${esc(ui.q)}“ gibt es keinen Eintrag. Im Zweifel gilt: gut durchgaren, pasteurisiert kaufen, gründlich waschen. Und Hebamme oder Ärztin fragen.</div>`;
+}
+function viewAmpel(){
+  return `<div class="view">
+    <h1>Darf ich das essen?</h1>
+    <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+      <input type="search" id="q" placeholder="z. B. Käse, Lachs, Kaffee" value="${esc(ui.q)}" autocomplete="off" aria-label="Lebensmittel suchen"></div>
+    <div class="legend"><span class="pill p-ok">Ja</span>unbedenklich <span class="pill p-warn">Prüfen</span>mit Einschränkung <span class="pill p-no">Nein</span>meiden</div>
+    <div class="rlist" id="flist">${foodRows()}</div>
+    ${disclaimer()}</div>`;
+}
+
+function viewRezepte(){
+  const P = pregnancy(); const prio = P ? TRIMESTERS[P.tri].prio : [];
+  const nuts = ["Folsäure","Eisen","Jod","Omega-3","Calcium","Ballaststoffe","Protein"];
+  let list = RECIPES.filter(r => (ui.rType==="alle" || r.type===ui.rType) && (!ui.rNut || r.nut.includes(ui.rNut)));
+  const score = r => r.nut.filter(n=>prio.includes(n)).length + (P && r.tri && r.tri.includes(P.tri) ? 2 : 0);
+  list = list.slice().sort((a,b)=>score(b)-score(a));
+  return `<div class="view">
+    <div><h1>Rezepte</h1>${P?`<p class="muted" style="margin:4px 0 0">Sortiert nach dem, was im ${TRIMESTERS[P.tri].name} wichtig ist: ${prio.join(", ")}.</p>`:""}</div>
+    <div class="chips">${[["alle","Alle"],["f","Frühstück"],["h","Hauptgericht"],["s","Snack"]].map(([k,l])=>`<button class="chip" data-rtype="${k}" aria-pressed="${ui.rType===k}">${l}</button>`).join("")}</div>
+    <div class="field"><label for="rnut">Nährstoff</label><select id="rnut"><option value="">Alle Nährstoffe</option>${nuts.map(n=>`<option ${ui.rNut===n?"selected":""}>${n}</option>`).join("")}</select></div>
+    <div class="rlist">${list.map(r=>recipeCard(r)).join("") || `<div class="tip">Keine Rezepte für diese Auswahl.</div>`}</div>
+    ${disclaimer()}</div>`;
+}
+
+function viewWoche(){
+  const seg = `<div class="seg" role="group" aria-label="Ansicht"><button data-wtab="plan" aria-pressed="${ui.wTab==="plan"}">Wochenplan</button><button data-wtab="einkauf" aria-pressed="${ui.wTab==="einkauf"}">Einkaufsliste</button></div>`;
+  const startN = dayNum(S.plan.start);
+  if(ui.wTab==="plan"){
+    const ti = todayIndex();
+    const days = S.plan.days.map((d,i)=>`<section class="panel day${i===ti?" today":""}"><h3>${WEEKDAYS[i]}<span class="small muted">${fmtDate(isoFromNum(startN+i)).slice(0,6)}${i===ti?" · heute":""}</span></h3>
+      ${SLOTS.map(([k,lab,type])=>`<div class="pslot"><span>${lab}</span><select data-day="${i}" data-slot="${k}" aria-label="${WEEKDAYS[i]} ${lab}">
+        <option value="">– nichts –</option>${RECIPES.filter(r=>r.type===type).map(r=>`<option value="${r.id}" ${d[k]===r.id?"selected":""}>${esc(r.name)}</option>`).join("")}
+      </select></div>`).join("")}</section>`).join("");
+    const fishCount = S.plan.days.reduce((n,d)=>n+["m","a"].filter(k=>byId[d[k]]&&byId[d[k]].fish).length,0);
+    return `<div class="view"><h1>Diese Woche</h1>${seg}
+      <div class="tip">${fishCount>=1?`${fishCount}× Fisch eingeplant.`:"Noch kein Fisch eingeplant."} Empfohlen sind 1–2 Fischmahlzeiten pro Woche.</div>
+      <button class="btn ghost" data-act="newplan">Woche neu vorschlagen</button>
+      ${days}${disclaimer()}</div>`;
+  }
+  const L = shoppingList();
+  const groupsHtml = Object.keys(GROUPS).filter(g=>L[g]).map(g=>`<section class="panel shop-group"><h3>${GROUPS[g]}</h3>${g==="g"?`<p class="small muted" style="margin:0">Meist schon zu Hause, kurz nachsehen.</p>`:""}
+    ${L[g].map(it=>`<label class="shop-item${S.shopDone[it.key]?" done":""}"><input type="checkbox" data-shop="${esc(it.key)}" ${S.shopDone[it.key]?"checked":""}><span class="nm">${esc(it.n)}</span><span class="amt">${esc(it.amt)}</span></label>`).join("")}</section>`).join("");
+  return `<div class="view"><h1>Einkaufsliste</h1>${seg}
+    <div class="field"><label for="persons">Für wie viele Personen?</label><select id="persons">${[1,2,3,4,5,6].map(n=>`<option ${S.persons===n?"selected":""}>${n}</option>`).join("")}</select></div>
+    <p class="small muted" style="margin:0">Alles für den Wochenplan vom ${fmtDate(S.plan.start)}. Abgehakt bleibt abgehakt, bis die nächste Woche beginnt.</p>
+    <div class="head"><button class="btn ghost small" data-act="copyshop">Liste kopieren</button><button class="btn ghost small" data-act="clearshop">Haken entfernen</button></div>
+    ${groupsHtml}${disclaimer()}</div>`;
+}
+
+function disclaimer(){ return `<p class="disclaimer">Bauchgefühl ersetzt keine Beratung durch Ärztin oder Hebamme. <button class="btn ghost small" data-act="sources" style="padding:2px 8px;font-size:12.5px">Quellen</button></p>`; }
+
+/* ---------- Blatt (Rezept, Einstellungen, Quellen) ---------- */
+const $sheet = document.getElementById("sheet"), $box = document.getElementById("sheetBox");
+function openSheet(html, label){ $box.innerHTML = `<div class="grab"></div>`+html; $box.setAttribute("aria-label",label); $sheet.hidden = false; document.body.style.overflow="hidden"; $box.scrollTop=0; const f=$box.querySelector("button,select,input"); if(f) f.focus({preventScroll:true}); }
+function closeSheet(){ $sheet.hidden = true; document.body.style.overflow=""; }
+
+function openRecipe(id){
+  const r = byId[id]; if(!r) return;
+  const f = S.persons/2;
+  const ing = r.ing.map(([q,u,n])=>{ const v=scaleAmount(q,u,f); return `<li><span>${u==="Prise"?"1 Prise":fmtNum(v)+" "+u}</span><span>${esc(n)}</span></li>`; }).join("");
+  const ti = Math.max(0, Math.min(6, todayIndex()));
+  const slotsFor = SLOTS.filter(s=>s[2]===r.type);
+  openSheet(`<div class="head"><h2>${esc(r.name)}</h2><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="meta"><span>${r.min} Min.</span><span>${TYPES[r.type]}</span><span>für ${S.persons} ${S.persons===1?"Person":"Personen"}</span></div>
+    <div class="nut-tag">${r.nut.map(esc).join(" · ")}</div>
+    ${r.safe?`<div class="safe"><b>Sicher essen:</b> ${esc(r.safe)}</div>`:""}
+    <h3>Zutaten</h3><ul class="ing">${ing}</ul>
+    <h3>Zubereitung</h3><ol>${r.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
+    ${r.tip?`<div class="tip">${esc(r.tip)}</div>`:""}
+    <h3>In den Wochenplan</h3>
+    <div class="addplan"><select id="apDay" aria-label="Tag">${WEEKDAYS.map((w,i)=>`<option value="${i}" ${i===ti?"selected":""}>${w}</option>`).join("")}</select>
+      <select id="apSlot" aria-label="Mahlzeit">${slotsFor.map(s=>`<option value="${s[0]}">${s[1]}</option>`).join("")}</select>
+      <button class="btn small" data-act="addplan" data-id="${r.id}">Eintragen</button></div>`, r.name);
+}
+function openSettings(){
+  openSheet(`<div class="head"><h2>Einstellungen</h2><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    ${viewSetup(true)}
+    <section class="panel"><h3>Erinnerung „Heute genommen“</h3><p class="small muted" style="margin:0">Nur das ankreuzen, was die Ärztin empfohlen hat.</p>
+      <div class="supp">${SUPPLEMENTS.map(s=>`<label><input type="checkbox" data-suppcfg="${s}" ${S.supps.includes(s)?"checked":""}>${s}</label>`).join("")}</div></section>
+    <section class="panel"><h3>Daten</h3><p class="small muted" style="margin:0">Alles wird nur auf diesem Handy gespeichert. Es wird nichts verschickt.</p>
+      <button class="btn ghost" data-act="reset">Alle Daten löschen</button><div id="resetConfirm" hidden><p style="margin:0">Wirklich alles löschen? Termin, Wochenplan und Haken gehen verloren.</p><div class="head" style="justify-content:flex-start"><button class="btn" data-act="resetYes" style="background:var(--no)">Ja, löschen</button><button class="btn ghost" data-act="resetNo">Abbrechen</button></div></div></section>`, "Einstellungen");
+}
+function openSources(){
+  openSheet(`<div class="head"><h2>Quellen und Hinweis</h2><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <p style="margin:0">Die Empfehlungen in dieser App richten sich nach:</p>
+    <ul>
+      <li>Netzwerk Gesund ins Leben: Handlungsempfehlungen „Ernährung und Lebensstil vor und während der Schwangerschaft“ (<a href="https://www.gesund-ins-leben.de" target="_blank" rel="noopener">gesund-ins-leben.de</a>)</li>
+      <li>Bundesinstitut für Risikobewertung (BfR): „Sicher verpflegt – Besonders empfindliche Personengruppen“, Listeriose und Toxoplasmose (<a href="https://www.bfr.bund.de" target="_blank" rel="noopener">bfr.bund.de</a>)</li>
+      <li>Deutsche Gesellschaft für Ernährung (DGE): Referenzwerte für die Nährstoffzufuhr (<a href="https://www.dge.de" target="_blank" rel="noopener">dge.de</a>)</li>
+    </ul>
+    <div class="safe"><b>Wichtig:</b> Die App ist eine Alltagshilfe und ersetzt keine Beratung. Nahrungsergänzungen, besonders Eisen und Jod, nur nach Rücksprache mit Ärztin oder Hebamme. Bei Vorerkrankungen, Allergien oder Schwangerschaftsdiabetes gelten eigene Regeln.</div>`, "Quellen");
+}
+
+let toastT;
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2200); }
+
+/* ---------- Ereignisse ---------- */
+document.addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if(e.target === $sheet){ closeSheet(); return; }
+  if(!b) return;
+  if(b.dataset.tab){ if($sheet.hidden===false) closeSheet(); setTab(b.dataset.tab); return; }
+  if(b.dataset.recipe){ openRecipe(b.dataset.recipe); return; }
+  if(b.dataset.crave){ ui.craving=b.dataset.crave; render(); return; }
+  if(b.dataset.rtype){ ui.rType=b.dataset.rtype; render(); return; }
+  if(b.dataset.wtab){ ui.wTab=b.dataset.wtab; render(); return; }
+  const a = b.dataset.act;
+  if(a==="close") closeSheet();
+  else if(a==="settings") openSettings();
+  else if(a==="sources") openSources();
+  else if(a==="saveEt"){
+    const et = document.getElementById("et").value, lmp = document.getElementById("lmp").value;
+    let v = et || (lmp ? isoFromNum(dayNum(lmp)+280) : "");
+    if(!v){ toast("Bitte ein Datum eintragen."); return; }
+    const diff = dayNum(v) - dayNum(todayISO());
+    if(diff > 300 || diff < -30){ toast("Das Datum liegt zu weit weg. Bitte prüfen."); return; }
+    S.et = v; save(); closeSheet(); render(); toast("Termin gespeichert: "+fmtDate(v));
+  }
+  else if(a==="newplan"){ S.plan = makePlan(dayNum(S.plan.start)); S.shopDone={}; save(); render(); toast("Neuer Wochenplan erstellt"); }
+  else if(a==="addplan"){
+    const d=+document.getElementById("apDay").value, s=document.getElementById("apSlot").value;
+    S.plan.days[d][s]=b.dataset.id; save(); closeSheet(); render(); toast(`Eingetragen: ${WEEKDAYS[d]}, ${SLOTS.find(x=>x[0]===s)[1]}`);
+  }
+  else if(a==="clearshop"){ S.shopDone={}; save(); render(); }
+  else if(a==="copyshop"){
+    const L=shoppingList(); const txt=Object.keys(GROUPS).filter(g=>L[g]).map(g=>GROUPS[g]+":\n"+L[g].filter(i=>!S.shopDone[i.key]).map(i=>"- "+(i.amt?i.amt+" ":"")+i.n).join("\n")).join("\n\n");
+    const done=()=>toast("Einkaufsliste kopiert");
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,()=>toast("Kopieren ging nicht. Bitte lange auf den Text drücken."));
+    else toast("Kopieren wird hier nicht unterstützt.");
+  }
+  else if(a==="reset"){ document.getElementById("resetConfirm").hidden=false; }
+  else if(a==="resetNo"){ document.getElementById("resetConfirm").hidden=true; }
+  else if(a==="resetYes"){ try{localStorage.removeItem(KEY);}catch(e){} S=load(); closeSheet(); setTab("heute"); }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if(t.dataset.supp){ const k=todayISO(); const l=new Set(S.taken[k]||[]); t.checked?l.add(t.dataset.supp):l.delete(t.dataset.supp); S.taken={[k]:[...l]}; save(); }
+  else if(t.dataset.suppcfg){ const l=new Set(S.supps); t.checked?l.add(t.dataset.suppcfg):l.delete(t.dataset.suppcfg); S.supps=SUPPLEMENTS.filter(s=>l.has(s)); save(); render(); }
+  else if(t.dataset.shop){ if(t.checked) S.shopDone[t.dataset.shop]=1; else delete S.shopDone[t.dataset.shop]; save(); t.closest(".shop-item").classList.toggle("done",t.checked); }
+  else if(t.dataset.slot){ S.plan.days[+t.dataset.day][t.dataset.slot]=t.value||null; save(); }
+  else if(t.id==="persons"){ S.persons=+t.value; save(); render(); }
+  else if(t.id==="rnut"){ ui.rNut=t.value||null; render(); }
+  else if(t.id==="lmp" && t.value){ const et=document.getElementById("et"); if(et) et.value=isoFromNum(dayNum(t.value)+280); }
+});
+document.addEventListener("input", e => { if(e.target.id==="q"){ ui.q=e.target.value; document.getElementById("flist").innerHTML=foodRows(); } });
+document.addEventListener("keydown", e => { if(e.key==="Escape" && !$sheet.hidden) closeSheet(); });
+
+setTab(S.tab || "heute");
+
+/* Offline-Nutzung */
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load", ()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
+}
+</script>
+</body>
+</html>
