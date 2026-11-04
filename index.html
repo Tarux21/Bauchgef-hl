@@ -862,10 +862,17 @@ let S = load();
 function load(){
   let s = null;
   try{ s = JSON.parse(localStorage.getItem(KEY) || "null"); }catch(e){}
+  return normalize(s);
+}
+function normalize(s){
+  if(!s || typeof s !== "object" || Array.isArray(s)) s = {};
   s = Object.assign({et:null, persons:2, supps:["Folsäure","Jod"], taken:{}, plan:null, shopDone:{}, tab:"heute", fav:[], hidden:null, water:{}}, s || {});
   // Voreinstellung: kein Lachs/Seelachs (nur Thunfisch). In den Einstellungen wieder einblendbar.
   if(!Array.isArray(s.hidden)) s.hidden = ["ofenlachs","seelachs"];
   if(!Array.isArray(s.allergies)) s.allergies = ["Walnuss","Kiwi"];
+  ["supps","fav"].forEach(k => { if(!Array.isArray(s[k])) s[k] = []; });
+  ["taken","shopDone","water"].forEach(k => { if(!s[k] || typeof s[k] !== "object") s[k] = {}; });
+  if(s.et && !/^\d{4}-\d{2}-\d{2}$/.test(s.et)) s.et = null;
   return s;
 }
 // Allergie-Begriff auf den Wortstamm kürzen: „Walnüsse“ findet auch „Walnuss“
@@ -1235,7 +1242,13 @@ function openSettings(){
       <div class="addplan" style="grid-template-columns:1fr auto"><input type="text" id="newAllergy" placeholder="z. B. Sellerie" aria-label="Allergie hinzufügen"><button class="btn small" data-act="addAllergy">Hinzufügen</button></div></section>
     <section class="panel"><h3>Ausgeblendete Rezepte</h3>
       ${S.hidden.length?`<p class="small muted" style="margin:0">Antippen blendet das Rezept wieder ein.</p><div class="chips">${S.hidden.map(id=>byId[id]?`<button class="chip hidden-chip" data-unhide="${id}">${esc(byId[id].name)} ✕</button>`:"").join("")}</div>`:`<p class="small muted" style="margin:0">Keine. Im Rezept auf „Nicht mehr vorschlagen“ tippen, um eines auszublenden.</p>`}</section>
-    <section class="panel"><h3>Daten</h3><p class="small muted" style="margin:0">Alles wird nur auf diesem Handy gespeichert. Es wird nichts verschickt.</p>
+    <section class="panel"><h3>Datensicherung</h3>
+      <p class="small muted" style="margin:0">Alles ist nur auf diesem Handy gespeichert. Eine Sicherung enthält Termin, Wochenplan, Favoriten, Allergien und Haken. Am besten per WhatsApp oder Mail an jemanden schicken oder in Drive bzw. iCloud ablegen.</p>
+      <p style="margin:0"><b>Letzte Sicherung:</b> <span id="lastBackup">${S.lastBackup ? fmtDate(S.lastBackup) : "noch keine"}</span></p>
+      <div class="btnrow"><button class="btn" data-act="backup">Sichern und teilen</button><button class="btn ghost" data-act="restore">Wiederherstellen</button></div>
+      <input type="file" id="restoreFile" accept=".txt,.json,text/plain,application/json" hidden>
+      <div id="restoreConfirm" hidden></div></section>
+    <section class="panel"><h3>Daten</h3><p class="small muted" style="margin:0">Die App schickt nichts von selbst ins Internet.</p>
       <button class="btn ghost" data-act="reset">Alle Daten löschen</button><div id="resetConfirm" hidden><p style="margin:0">Wirklich alles löschen? Termin, Wochenplan und Haken gehen verloren.</p><div class="head" style="justify-content:flex-start"><button class="btn" data-act="resetYes" style="background:var(--no)">Ja, löschen</button><button class="btn ghost" data-act="resetNo">Abbrechen</button></div></div></section>`, "Einstellungen");
 }
 function openSources(){
@@ -1247,6 +1260,52 @@ function openSources(){
       <li>Deutsche Gesellschaft für Ernährung (DGE): Referenzwerte für die Nährstoffzufuhr (<a href="https://www.dge.de" target="_blank" rel="noopener">dge.de</a>)</li>
     </ul>
     <div class="safe"><b>Wichtig:</b> Die App ist eine Alltagshilfe und ersetzt keine Beratung. Nahrungsergänzungen, besonders Eisen und Jod, nur nach Rücksprache mit Ärztin oder Hebamme. Bei Vorerkrankungen, Allergien oder Schwangerschaftsdiabetes gelten eigene Regeln.</div>`, "Quellen");
+}
+
+/* ---------- Datensicherung ---------- */
+// .txt statt .json: Android teilt nur bestimmte Dateitypen, Textdateien gehören dazu.
+function backupFile(){
+  const data = Object.assign({}, S); delete data.tab;
+  const text = JSON.stringify({app:"bauchgefuehl", version:1, created:todayISO(), data}, null, 1);
+  const name = `bauchgefuehl-sicherung-${todayISO()}.txt`;
+  return new File([text], name, {type:"text/plain"});
+}
+async function doBackup(){
+  const file = backupFile();
+  const done = how => { S.lastBackup = todayISO(); save(); const el=document.getElementById("lastBackup"); if(el) el.textContent=fmtDate(S.lastBackup); toast(how); };
+  try{
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:"Bauchgefühl-Sicherung", text:"Sicherung der Bauchgefühl-App vom "+fmtDate(todayISO())});
+      done("Sicherung geteilt"); return;
+    }
+  }catch(e){
+    if(e && e.name === "AbortError"){ toast("Sicherung abgebrochen"); return; }
+  }
+  // Ohne Teilen-Menü: als Datei speichern
+  try{
+    const url = URL.createObjectURL(file), a = document.createElement("a");
+    a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+    done("Sicherung als Datei gespeichert: "+file.name);
+  }catch(e){ toast("Sichern ging nicht. Bitte nochmal versuchen."); }
+}
+let pendingRestore = null;
+function readRestore(file){
+  const box = document.getElementById("restoreConfirm");
+  const r = new FileReader();
+  r.onload = () => {
+    let obj = null; try{ obj = JSON.parse(r.result); }catch(e){}
+    if(!obj || obj.app !== "bauchgefuehl" || !obj.data){ pendingRestore=null; box.hidden=false; box.innerHTML=`<p class="safe" style="margin:0">Diese Datei ist keine Bauchgefühl-Sicherung. Bitte die Datei „bauchgefuehl-sicherung-….txt“ wählen.</p>`; return; }
+    pendingRestore = obj;
+    const d = obj.data;
+    box.hidden = false;
+    box.innerHTML = `<div class="tip"><b>Sicherung vom ${esc(fmtDate(obj.created||todayISO()))}</b><br>
+      Termin: ${d.et?esc(fmtDate(d.et)):"keiner"} · Favoriten: ${(d.fav||[]).length} · Allergien: ${esc((d.allergies||[]).join(", ")||"keine")}</div>
+      <p style="margin:0">Wiederherstellen ersetzt alle Daten auf diesem Handy.</p>
+      <div class="btnrow"><button class="btn" data-act="restoreYes">Ja, wiederherstellen</button><button class="btn ghost" data-act="restoreNo">Abbrechen</button></div>`;
+  };
+  r.onerror = () => toast("Die Datei ließ sich nicht lesen.");
+  r.readAsText(file);
 }
 
 let toastT;
@@ -1296,6 +1355,10 @@ document.addEventListener("click", e => {
     if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,()=>toast("Kopieren ging nicht. Bitte lange auf den Text drücken."));
     else toast("Kopieren wird hier nicht unterstützt.");
   }
+  else if(a==="backup"){ doBackup(); }
+  else if(a==="restore"){ const i=document.getElementById("restoreFile"); i.value=""; i.click(); }
+  else if(a==="restoreNo"){ pendingRestore=null; document.getElementById("restoreConfirm").hidden=true; }
+  else if(a==="restoreYes" && pendingRestore){ const keepTab=S.tab; S=normalize(pendingRestore.data); S.tab=keepTab; pendingRestore=null; save(); closeSheet(); render(); toast("Sicherung wiederhergestellt"); }
   else if(a==="reset"){ document.getElementById("resetConfirm").hidden=false; }
   else if(a==="resetNo"){ document.getElementById("resetConfirm").hidden=true; }
   else if(a==="resetYes"){ try{localStorage.removeItem(KEY);}catch(e){} S=load(); closeSheet(); setTab("heute"); }
@@ -1306,6 +1369,7 @@ document.addEventListener("change", e => {
   else if(t.dataset.suppcfg){ const l=new Set(S.supps); t.checked?l.add(t.dataset.suppcfg):l.delete(t.dataset.suppcfg); S.supps=SUPPLEMENTS.filter(s=>l.has(s)); save(); render(); }
   else if(t.dataset.shop){ if(t.checked) S.shopDone[t.dataset.shop]=1; else delete S.shopDone[t.dataset.shop]; save(); t.closest(".shop-item").classList.toggle("done",t.checked); }
   else if(t.dataset.slot){ S.plan.days[+t.dataset.day][t.dataset.slot]=t.value||null; save(); }
+  else if(t.id==="restoreFile" && t.files && t.files[0]){ readRestore(t.files[0]); }
   else if(t.id==="persons"){ S.persons=+t.value; save(); render(); }
   else if(t.id==="rnut"){ ui.rNut=t.value||null; render(); }
   else if(t.id==="lmp" && t.value){ const et=document.getElementById("et"); if(et) et.value=isoFromNum(dayNum(t.value)+280); }

@@ -9,7 +9,7 @@ Web-App fürs Handy: Ernährung in der Schwangerschaft, einfach gemacht.
 - **Rezepte:** 50 Rezepte, sortiert nach den Nährstoffen, die im aktuellen Trimester wichtig sind. Jedes Rezept mit Sicherheitshinweis. Im Rezept „♥ Lieblingsrezept“ (kommt öfter in den Wochenplan, Filter „Favoriten“) und „Nicht mehr vorschlagen“ (wieder einblenden über das Zahnrad auf „Heute“).
 - **Woche:** Wochenplan mit automatischem Vorschlag (bis zu 2× Fisch, Thunfisch höchstens 1×), jede Mahlzeit änderbar, Einkaufsliste für 1 bis 6 Personen zum Abhaken und Kopieren.
 
-Alle Eingaben bleiben nur auf dem Handy (Browser-Speicher). Nach dem ersten Öffnen funktioniert die App auch ohne Internet.
+Alle Eingaben bleiben nur auf dem Handy (Browser-Speicher). Über das Zahnrad → **Datensicherung → „Sichern und teilen“** lässt sich alles als kleine Textdatei per WhatsApp, Mail, Drive oder iCloud sichern und mit **„Wiederherstellen“** wieder einlesen, z. B. auf einem neuen Handy. Nach dem ersten Öffnen funktioniert die App auch ohne Internet.
 
 ## Aufs Handy bringen
 
