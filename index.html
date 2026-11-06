@@ -1571,6 +1571,7 @@ const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
+const APP_VERSION = "9 · 06.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -1961,7 +1962,7 @@ function openSettings(){
       <div class="btnrow"><button class="btn" data-act="backup">Sichern und teilen</button><button class="btn ghost" data-act="restore">Wiederherstellen</button></div>
       <input type="file" id="restoreFile" accept=".txt,.json,text/plain,application/json" hidden>
       <div id="restoreConfirm" hidden></div></section>
-    <section class="panel"><h3>Daten</h3><p class="small muted" style="margin:0">Die App schickt nichts von selbst ins Internet.</p>
+    <section class="panel"><h3>Daten</h3><p class="small muted" style="margin:0">Die App schickt nichts von selbst ins Internet. App-Version ${APP_VERSION}</p>
       <button class="btn ghost" data-act="reset">Alle Daten löschen</button><div id="resetConfirm" hidden><p style="margin:0">Wirklich alles löschen? Termin, Wochenplan und Haken gehen verloren.</p><div class="head" style="justify-content:flex-start"><button class="btn" data-act="resetYes" style="background:var(--no)">Ja, löschen</button><button class="btn ghost" data-act="resetNo">Abbrechen</button></div></div></section>`, "Einstellungen");
 }
 function openSources(){
@@ -2092,9 +2093,20 @@ document.addEventListener("keydown", e => { if(e.key==="Escape" && !$sheet.hidde
 
 setTab(S.tab || "heute");
 
-/* Offline-Nutzung */
+/* Offline-Nutzung und Updates
+   Beim Start und jedes Mal, wenn die App wieder in den Vordergrund kommt, nach einer neuen Version fragen.
+   Ist eine da, lädt die App sich einmal selbst neu. */
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
-  window.addEventListener("load", ()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
+  let reloading = false;
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", ()=>{ if(hadController && !reloading){ reloading = true; location.reload(); } });
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js", {updateViaCache:"none"}).then(reg=>{
+      const check = ()=>{ reg.update().catch(()=>{}); };
+      document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") check(); });
+      setInterval(check, 60*60*1000);
+    }).catch(()=>{});
+  });
 }
 </script>
 </body>
