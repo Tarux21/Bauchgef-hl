@@ -177,6 +177,29 @@ button.frow{width:100%;text-align:left;font:inherit;color:inherit}
 .forme{background:var(--apricot-soft);border-radius:12px;padding:10px 12px;font-size:14.5px}
 .forme b{color:var(--apricot)}
 
+/* Vorsorge */
+.vnext{display:flex;flex-direction:column;gap:3px;text-align:left;width:100%;border:0;border-radius:22px;padding:14px 16px;background:var(--hero);color:var(--hero-fg)}
+.vnext .label,.vnext .small{color:inherit;opacity:.8}
+.vnext b{font-family:var(--display);font-size:19px;font-weight:600}
+.vprog{display:flex;flex-direction:column;gap:6px}
+.vbar{height:10px;border-radius:99px;background:var(--line);overflow:hidden} .vbar i{display:block;height:100%;background:var(--sage);border-radius:99px}
+.vgroup{margin-top:4px;display:flex;gap:6px;align-items:baseline}
+.vlist{display:flex;flex-direction:column;gap:6px}
+.vrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:start;border:1px solid var(--line);border-radius:16px;padding:10px 12px;background:var(--surface)}
+.vrow.now{border-color:var(--apricot)} .vrow.missed{border-color:var(--warn)}
+.vcheck{width:24px;height:24px;border-radius:8px;border:2px solid var(--sage);background:none;display:grid;place-items:center;margin-top:1px}
+.vcheck[aria-pressed="true"]{background:var(--sage)}
+.vcheck[aria-pressed="true"]::after{content:"";width:6px;height:11px;border:solid var(--on-sage);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.vtxt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.vtxt b{font-size:15px} .vtxt span{font-size:13px;color:var(--muted)} .vtxt small{font-size:13px;color:var(--fg);opacity:.85}
+.vrow.done .vtxt b{color:var(--muted);text-decoration:line-through} .vrow.done .vtxt small{display:none}
+.vtag{border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;white-space:nowrap}
+.c-u{background:var(--t2);color:var(--t2-fg)} .c-i{background:var(--t3);color:var(--t3-fg)} .c-o{background:var(--t4);color:var(--t4-fg)} .c-e{background:var(--t1);color:var(--t1-fg)}
+.vrow.missed .vtag{background:var(--warn-soft);color:var(--warn)}
+.vdel{width:30px;height:30px;font-size:13px}
+.apform{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.apform input{min-width:0}
+
 /* Tagesziel */
 .daygoal{gap:12px}
 .dg-ring{display:grid;place-items:center;background:var(--card);border-radius:22px;padding:8px}
@@ -2491,7 +2514,7 @@ const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
-const APP_VERSION = "18 · 07.11.2026";
+const APP_VERSION = "19 · 07.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -2510,6 +2533,9 @@ function normalize(s){
   s.suppList = s.suppList.filter(x => x && typeof x.name === "string" && x.name.trim()).map(x => ({name:x.name.trim(), time:TIMES.includes(x.time)?x.time:"morgens", hint:String(x.hint||"")}));
   if(!(s.waterGoal >= 4 && s.waterGoal <= 12)) s.waterGoal = 6;
   delete s.plan; delete s.shopDone; delete s.supps;
+  if(!s.vorsorge || typeof s.vorsorge !== "object" || typeof s.vorsorge.done !== "object") s.vorsorge = {done:{}};
+  if(!Array.isArray(s.appts)) s.appts = [];
+  s.appts = s.appts.filter(a => a && a.title && /^\d{4}-\d{2}-\d{2}$/.test(a.date));
   const pd = {on:false, url:"", times:{morgens:"08:30", mittags:"13:00", abends:"19:30"}, waterOn:true, waterTimes:["11:00","14:00","17:00"], dirty:false};
   s.push = Object.assign(pd, s.push && typeof s.push === "object" ? s.push : {});
   if(!s.deviceId) s.deviceId = "dev-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -2609,6 +2635,7 @@ function viewHeute(){
     <div><div class="label">Schwangerschaftswoche</div><div class="big">SSW ${Math.max(0,P.w)}+${P.d}</div><div class="small">${T.name} · ${leftTxt}</div></div>
   </section>`;
 
+  html += viewVorsorgeCard();
   html += viewWeekCard(P);
   html += `<section class="view" style="gap:10px"><h2>Jetzt wichtig</h2><div class="nut">${T.focus.map(([b,t])=>`<div><span class="ni" aria-hidden="true">${nutIcon(b)}</span><b>${esc(b)}</b>${esc(t)}</div>`).join("")}</div></section>`;
 
@@ -2966,11 +2993,92 @@ function readRestore(file){
   r.readAsText(file);
 }
 
+
+/* ============================================================
+   VORSORGE-KALENDER
+   Zeiträume nach den Mutterschafts-Richtlinien, Impfungen nach STIKO.
+   [id, Thema (u = Untersuchung, i = Impfung, o = Organisatorisch), von SSW, bis SSW, Titel, Erklärung]
+   SSW als Dezimalzahl: 9 = 9+0, 12.86 ≈ 12+6
+   ============================================================ */
+const VORSORGE = [
+ ["erst","u",4,10,"Frauenarzt-Termin und Mutterpass","Erstuntersuchung: Blutgruppe, Rhesusfaktor, Röteln-Schutz, Antikörper, Urin. Du bekommst den Mutterpass."],
+ ["hebamme","o",6,12,"Hebamme suchen","Für Vorsorge, Fragen und das Wochenbett. Viele Hebammen sind früh ausgebucht."],
+ ["us1","u",9,12.86,"1. Ultraschall","Herzschlag, Größe, Geburtstermin bestätigen."],
+ ["nipt","u",10,13.86,"Pränataldiagnostik besprechen","Optional: Bluttest (NIPT) oder Ersttrimester-Screening. Was sinnvoll ist, mit der Ärztin besprechen."],
+ ["arbeit","o",12,20,"Arbeitgeber informieren","Erst dann gelten die Mutterschutz-Rechte, z. B. Freistellung für Vorsorgetermine."],
+ ["grippe","i",14,27.86,"Grippe-Impfung besprechen","Ab dem 2. Trimester empfohlen, vor allem in der Grippesaison (Herbst und Winter)."],
+ ["zahn","u",14,30,"Zahnarzt-Kontrolle","Das Zahnfleisch ist in der Schwangerschaft empfindlicher. Kontrolle und Reinigung zahlt meist die Kasse."],
+ ["us2","u",18,21.86,"2. Ultraschall","Organe, Wachstum, Fruchtwasser und Lage der Plazenta."],
+ ["kurs","o",20,25,"Geburtsvorbereitungskurs anmelden","Der Kurs beginnt meist um SSW 25 bis 30, die Plätze sind aber früh voll."],
+ ["zucker","u",24,27.86,"Zuckertest (oGTT)","Test auf Schwangerschaftsdiabetes, dazu der 2. Antikörpersuchtest."],
+ ["keuch","i",28,32,"Keuchhusten-Impfung besprechen","Zu Beginn des 3. Trimesters. Schützt das Baby in den ersten Lebensmonaten."],
+ ["antid","i",28,30,"Anti-D-Prophylaxe (nur bei Rhesus-negativ)","Steht im Mutterpass. Bei Rhesus-positiv entfällt dieser Punkt, einfach abhaken."],
+ ["us3","u",28,31.86,"3. Ultraschall","Lage des Babys und Wachstum."],
+ ["klinik","o",30,36,"Geburtsklinik anmelden","Oft mit Vorgespräch. Fragen vorher notieren."],
+ ["kinderarzt","o",30,36,"Kinderarzt suchen","Für die Vorsorge U2 und U3 nach der Geburt."],
+ ["eltern","o",30,38,"Elternzeit und Elterngeld vorbereiten","Elternzeit spätestens 7 Wochen vor Beginn beim Arbeitgeber anmelden, das gilt auch für den Partner. Elterngeld wird nach der Geburt beantragt."],
+ ["hepb","u",32,36,"Hepatitis-B-Test","Bluttest. Ab jetzt ist die Vorsorge alle 2 Wochen."],
+ ["mgeld","o",33,34,"Mutterschaftsgeld beantragen","Bescheinigung über den Geburtstermin holen (frühestens 7 Wochen vorher) und bei der Krankenkasse einreichen."],
+ ["mschutz","o",34,34.86,"Mutterschutz beginnt","6 Wochen vor dem Geburtstermin. Freiwillig weiterarbeiten geht nur auf eigenen Wunsch."],
+ ["tasche","o",34,36,"Kliniktasche packen","Für Mama, Baby und Begleitung. Mutterpass nicht vergessen."],
+ ["et","u",40,42,"Kontrollen ab dem Geburtstermin","Etwa alle 2 Tage CTG und Ultraschall. Wie es weitergeht, mit der Ärztin besprechen."],
+];
+const V_CAT = {u:["Untersuchung","c-u"], i:["Impfung","c-i"], o:["Organisatorisch","c-o"], e:["Eigener Termin","c-e"]};
+const sswTxt = w => { const W = Math.floor(w), d = Math.round((w-W)*7); return d ? `${W}+${d}` : `${W}`; };
+function vorsorgeItems(){
+  const P = pregnancy(); const now = P ? P.pd/7 : 0; const today = todayISO();
+  const std = VORSORGE.map(([id,cat,from,to,title,desc]) => {
+    const done = !!S.vorsorge.done[id];
+    const state = done ? "done" : now > to ? "missed" : now >= from ? "now" : from - now <= 6 ? "soon" : "later";
+    return {id, cat, title, desc, when:`SSW ${sswTxt(from)} bis ${sswTxt(to)}`, state, sort: from};
+  });
+  const own = S.appts.map(a => {
+    const diff = dayNum(a.date) - dayNum(today);
+    const state = a.done || diff < 0 ? "done" : diff <= 7 ? "now" : diff <= 42 ? "soon" : "later";
+    const wd = WEEKDAYS[(new Date(a.date+"T12:00").getDay()+6)%7].slice(0,2);
+    return {id:a.id, own:true, cat:"e", title:a.title, desc:"", when:`${wd}, ${fmtDate(a.date)}${a.time?` · ${a.time} Uhr`:""}${diff===0?" · heute":diff===1?" · morgen":""}`, state, sort: P ? (P.pd + diff)/7 : diff, date:a.date, time:a.time||""};
+  });
+  return std.concat(own).sort((x,y) => x.sort - y.sort || (x.time||"").localeCompare(y.time||""));
+}
+function vorsorgeNext(){
+  const it = vorsorgeItems();
+  const ownSoon = it.filter(x => x.own && x.state === "now").sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time))[0];
+  return ownSoon || it.find(x => x.state === "now") || it.find(x => x.state === "soon") || it.find(x => x.state === "missed") || it.find(x => x.state === "later");
+}
+function viewVorsorgeCard(){
+  const n = vorsorgeNext(), it = vorsorgeItems();
+  const open = it.filter(x => x.state === "now").length;
+  if(!n) return `<button class="vnext" data-act="vorsorge"><span class="label">Vorsorge</span><b>Alles erledigt 💜</b><span class="small">Kalender öffnen ›</span></button>`;
+  const badge = n.state === "now" ? "jetzt dran" : n.state === "missed" ? "noch offen" : "demnächst";
+  return `<button class="vnext" data-act="vorsorge"><span class="label">Als Nächstes in der Vorsorge</span><b>${esc(n.title)}</b><span>${esc(n.when)} · ${badge}</span><span class="small">${open>1?`${open} Punkte jetzt dran · `:""}Kalender öffnen ›</span></button>`;
+}
+function openVorsorge(){
+  const it = vorsorgeItems(), cat = ui.vCat || "alle";
+  const f = it.filter(x => cat === "alle" || x.cat === cat);
+  const done = it.filter(x => x.state === "done").length;
+  const row = x => `<div class="vrow ${x.state}"><button class="vcheck" data-vdone="${esc(x.id)}" aria-pressed="${x.state==="done"}" aria-label="${esc(x.title)} erledigt"></button>
+    <div class="vtxt"><b>${esc(x.title)}</b><span>${esc(x.when)}</span>${x.desc?`<small>${esc(x.desc)}</small>`:""}</div>
+    <span class="vtag ${V_CAT[x.cat][1]}">${x.state==="missed"?"offen":V_CAT[x.cat][0]}</span>${x.own?`<button class="iconbtn vdel" data-vdel="${esc(x.id)}" aria-label="${esc(x.title)} löschen">✕</button>`:""}</div>`;
+  const group = (label, states) => { const l = f.filter(x => states.includes(x.state)); return l.length ? `<h3 class="vgroup">${label} <span class="small muted">${l.length}</span></h3><div class="vlist">${l.map(row).join("")}</div>` : ""; };
+  openSheet(`<div class="head"><h2>Vorsorge</h2><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="vprog"><div class="head" style="align-items:baseline"><span class="small">${done} von ${it.length} erledigt</span></div><div class="vbar"><i style="width:${(done/Math.max(1,it.length)*100).toFixed(0)}%"></i></div></div>
+    <div class="chips">${[["alle","Alle"],["u","Untersuchungen"],["i","Impfungen"],["o","Organisatorisch"],["e","Eigene"]].map(([k,l])=>`<button class="chip" data-vcat="${k}" aria-pressed="${cat===k}">${l}</button>`).join("")}</div>
+    ${group("Jetzt dran",["now"])}${group("Demnächst",["soon"])}
+    ${f.some(x=>x.state==="missed")?`<h3 class="vgroup">Noch offen aus früheren Wochen <span class="small muted">${f.filter(x=>x.state==="missed").length}</span></h3><p class="small muted" style="margin:0">Schon erledigt? Einfach abhaken, oder alles auf einmal.</p><button class="btn ghost small" data-act="vmissedAll" style="align-self:flex-start">Alle als erledigt markieren</button><div class="vlist">${f.filter(x=>x.state==="missed").map(row).join("")}</div>`:""}
+    ${group("Später",["later"])}${group("Erledigt",["done"])}
+    ${f.length?"":`<p class="small muted">Noch keine eigenen Termine.</p>`}
+    <section class="panel"><h3>Eigenen Termin hinzufügen</h3>
+      <div class="field"><label for="apTitle">Was</label><input type="text" id="apTitle" placeholder="z. B. Frauenarzt, Hebamme, Kurs"></div>
+      <div class="apform"><div class="field"><label for="apDate">Datum</label><input type="date" id="apDate" value="${todayISO()}"></div><div class="field"><label for="apTime">Uhrzeit</label><input type="time" id="apTime"></div></div>
+      <button class="btn" data-act="addAppt">Hinzufügen</button></section>
+    <p class="small muted" style="margin:0">Zeiträume nach den Mutterschafts-Richtlinien, Impfungen nach STIKO. Was für dich gilt, legt deine Ärztin fest.</p>`, "Vorsorge");
+}
+
 /* ---------- Erinnerungen über den eigenen Server (Raspberry Pi im Tailscale-Netz) ---------- */
 const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 function pushBase(){ return (S.push.url || "").trim().replace(/\/+$/, ""); }
-function pushSettings(){ return {times:S.push.times, waterTimes:S.push.waterTimes, waterOn:S.push.waterOn, waterGoal:S.waterGoal, supps:S.suppList}; }
+function pushSettings(){ return {times:S.push.times, waterTimes:S.push.waterTimes, waterOn:S.push.waterOn, waterGoal:S.waterGoal, supps:S.suppList, appts:S.appts.filter(a=>!a.done).map(a=>({title:a.title,date:a.date,time:a.time}))}; }
 async function pushPost(path, body){
   const r = await fetch(pushBase() + path, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(Object.assign({device:S.deviceId}, body))});
   if(!r.ok){ const e = new Error("HTTP " + r.status); e.status = r.status; throw e; }
@@ -3050,6 +3158,9 @@ document.addEventListener("click", e => {
   if(b.dataset.complaint){ ui.complaint=b.dataset.complaint; render(); return; }
   if(b.dataset.water){ const k=todayISO(); S.water[k]=Math.max(0,Math.min(20,(S.water[k]||0)+(+b.dataset.water))); pruneDays(); save(); render(); pushSyncSoon(); return; }
   if(b.dataset.take){ const k=todayISO(), l=new Set(S.taken[k]||[]); l.has(b.dataset.take)?l.delete(b.dataset.take):l.add(b.dataset.take); S.taken[k]=[...l]; pruneDays(); save(); render(); pushSyncSoon(); return; }
+  if(b.dataset.vdone){ const id=b.dataset.vdone, a=S.appts.find(x=>x.id===id); if(a){ a.done=!a.done; } else { if(S.vorsorge.done[id]) delete S.vorsorge.done[id]; else S.vorsorge.done[id]=todayISO(); } save(); openVorsorge(); render(); return; }
+  if(b.dataset.vdel){ S.appts=S.appts.filter(x=>x.id!==b.dataset.vdel); save(); openVorsorge(); render(); pushSyncSoon(true); return; }
+  if(b.dataset.vcat){ ui.vCat=b.dataset.vcat; openVorsorge(); return; }
   if(b.dataset.delsupp){ S.suppList=S.suppList.filter(x=>x.name!==b.dataset.delsupp); save(); openSettings(); render(); pushSyncSoon(true); return; }
   if(b.dataset.quicksupp){ const n=b.dataset.quicksupp, h=SUPP_HINTS[n]||["morgens",""]; if(!S.suppList.some(x=>x.name===n)) S.suppList.push({name:n,time:h[0],hint:h[1]}); save(); openSettings(); render(); pushSyncSoon(true); return; }
   if(b.dataset.unallergy){ S.allergies=S.allergies.filter(x=>x!==b.dataset.unallergy); save(); openSettings(); render(); return; }
@@ -3074,6 +3185,13 @@ document.addEventListener("click", e => {
     if(S.suppList.some(x=>norm(x.name)===norm(n))){ toast(`„${n}“ ist schon eingetragen.`); return; }
     S.suppList.push({name:n, time:document.getElementById("suppTime").value, hint:(document.getElementById("suppHint").value||"").trim()});
     save(); openSettings(); render(); pushSyncSoon(true); toast(`„${n}“ hinzugefügt`); }
+  else if(a==="vorsorge"){ openVorsorge(); }
+  else if(a==="vmissedAll"){ vorsorgeItems().filter(x=>x.state==="missed"&&!x.own).forEach(x=>{ S.vorsorge.done[x.id]=todayISO(); }); save(); openVorsorge(); render(); toast("Frühere Punkte als erledigt markiert"); }
+  else if(a==="addAppt"){
+    const t=(document.getElementById("apTitle").value||"").trim(), d=document.getElementById("apDate").value, tm=document.getElementById("apTime").value;
+    if(!t){ toast("Bitte eintragen, was für ein Termin."); return; }
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ toast("Bitte ein Datum wählen."); return; }
+    S.appts.push({id:"a"+Date.now().toString(36), title:t, date:d, time:tm||"", done:false}); save(); ui.vCat="alle"; openVorsorge(); render(); pushSyncSoon(true); toast(`Termin „${t}“ eingetragen`); }
   else if(a==="pushOn"){ pushConnect(); }
   else if(a==="pushOff"){ pushOff(); }
   else if(a==="pushTest"){ pushTest(); }
