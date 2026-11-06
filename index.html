@@ -2226,6 +2226,57 @@ const MOVE_TO3 = {
 };
 Object.keys(FOOD_DATA).forEach(g => { FOOD_DATA[g] = FOOD_DATA[g].filter(e => { const to = MOVE_TO3[e[0]]; if(to && to !== g){ FOOD_DATA[to].push(e); return false; } return true; }); });
 
+/* ---------- Restaurant-Küchen: Thailändisch und Vietnamesisch ---------- */
+FOOD_GROUPS.push(
+ ["thailaendisch","Thailändisch (Restaurant)","Heiß gegart unbedenklich. Auf rohe Garnelen, rohe Sprossen, flüssiges Ei und Schärfe achten."],
+ ["vietnamesisch","Vietnamesisch (Restaurant)","Heiß gegart unbedenklich. Rohes Rindfleisch in Suppen, rohe Sprossen und Kräuterplatten meiden oder nachfragen."]
+);
+// Korea-Gericht vom Pho trennen, Pho bekommt einen eigenen Eintrag
+FOOD_DATA.asiatisch = FOOD_DATA.asiatisch.map(e => e[0]==="Pho, Bibimbap" ? ["Bibimbap","warn","Rohes Ei und rohes Rindfleisch weglassen oder durchgaren lassen.","","",""] : e);
+FOOD_DATA.thailaendisch = [
+ ["Grünes, rotes, gelbes Curry","ok","Fleisch und Garnelen durchgegart.","Kann sehr scharf sein, das verstärkt Sodbrennen.","","thai curry kaeng green curry red curry yellow curry"],
+ ["Pad See Ew, Pad Woon Sen","ok","Ei ganz durchgebraten.","","",""],
+ ["Khao Pad (gebratener Reis)","ok","Ei ganz durchgebraten.","","","thai fried rice"],
+ ["Gai Yang, Moo Ping (Grillspieße)","ok","Ganz durchgegrillt.","","Protein",""],
+ ["Khao Man Gai (Hähnchen mit Reis)","ok","Hähnchen durchgegart.","","Protein",""],
+ ["Khao Soi (Curry-Nudelsuppe)","ok","Heiß unbedenklich.","","",""],
+ ["Tod Man Pla (Fischküchlein)","ok","Frisch frittiert.","","Protein",""],
+ ["Gebratener oder gedämpfter Fisch (Thai)","ok","Ganz durchgegart.","","Protein,Jod","pla rad prik pla neung"],
+ ["Yam Talay (Meeresfrüchtesalat)","warn","Meeresfrüchte werden oft nur kurz blanchiert. Nur ganz durchgegart.","","",""],
+ ["Goong Chae Nam Pla (rohe Garnelen)","no","Rohe Garnelen in Fischsauce: Bakterien, Parasiten.","","","rohe garnelen"],
+ ["Nam Tok, Weeping Tiger (Rindfleisch)","warn","Rindfleisch wird oft rosa serviert. Ganz durchgebraten bestellen.","","Eisen,Protein","crying tiger"],
+ ["Laab Dib (rohes Hack)","no","Rohes Fleisch: Toxoplasmose.","","",""],
+ ["Thai-Eistee (Cha Yen), Thai-Eiskaffee","warn","Schwarztee bzw. Kaffee mit Koffein und viel Zucker.","","","cha yen"],
+ ["Kokosnuss frisch, Kokoswasser","ok","","","",""],
+ ["Bananen in Kokosmilch, Roti mit Banane","ok","","","",""],
+];
+FOOD_DATA.vietnamesisch = [
+ ["Phở Bò (Rindfleisch-Nudelsuppe)","warn","Die rohen Rindfleischscheiben garen in der Brühe oft nicht ganz durch. „Phở chín“ (durchgegartes Rind) bestellen.","","Eisen,Protein","pho bo pho tai"],
+ ["Phở Gà (Hühner-Nudelsuppe)","ok","Hähnchen durchgegart. Rohe Sprossen dazu weglassen.","","Protein","pho ga"],
+ ["Bún Bò Huế","ok","Scharfe Rindfleischsuppe, heiß unbedenklich.","","Eisen,Protein","bun bo hue"],
+ ["Bún Thịt Nướng","ok","Gegrilltes Schweinefleisch mit Reisnudeln. Rohe Kräuter gründlich gewaschen.","","Protein","bun thit nuong"],
+ ["Cơm Tấm (Bruchreis mit Grillfleisch)","ok","Fleisch durchgegrillt. Spiegelei dazu nur durchgebraten.","","Protein","com tam"],
+ ["Chả Giò (frittierte Frühlingsrollen)","ok","Frisch frittiert.","","","cha gio nem"],
+ ["Bánh Xèo (knuspriger Pfannkuchen)","ok","Die Sprossen im Pfannkuchen sind gegart. Rohe Kräuter dazu gründlich gewaschen.","","","banh xeo"],
+ ["Gỏi (vietnamesischer Salat)","warn","Viel rohe Kräuter, oft rohe Sprossen. Garnelen und Fleisch müssen durchgegart sein.","","","goi"],
+ ["Bò Lúc Lắc (Shaking Beef)","warn","Rindfleisch wird oft rosa serviert. Ganz durchgebraten bestellen.","","Eisen,Protein","bo luc lac"],
+ ["Bò Tái (rohes Rind mit Limette)","no","Rohes Rindfleisch: Toxoplasmose.","","","bo tai"],
+ ["Cá Kho Tộ (geschmorter Fisch)","ok","Lange geschmort, unbedenklich.","","Protein,Jod","ca kho"],
+ ["Canh Chua (saure Fischsuppe)","ok","Heiß unbedenklich.","","Protein","canh chua"],
+ ["Cà Ri Gà (vietnamesisches Hähnchen-Curry)","ok","","","Protein","ca ri ga"],
+ ["Bánh Bao (gedämpfte Teigtaschen)","ok","Heiß gedämpft.","","","banh bao"],
+ ["Nước Chấm (Dip-Soße)","ok","","Viel Salz.","","nuoc cham fischsoße"],
+ ["Chè (süßes Dessert)","ok","","","","che"],
+ ["Sinh Tố (Frucht-Shake)","ok","Frisch gemixt aus gewaschenem Obst.","","Vitamin C","sinh to"],
+];
+const MOVE_TO4 = {
+ "Tom Kha Gai, Tom Yum":"thailaendisch","Satay-Spieße":"thailaendisch","Massaman-Curry, Panang-Curry":"thailaendisch","Pad Kra Pao (mit Spiegelei)":"thailaendisch",
+ "Som Tam (Papayasalat)":"thailaendisch","Larb (Hacksalat)":"thailaendisch","Glasnudelsalat (Yum Woon Sen)":"thailaendisch","Mango Sticky Rice":"thailaendisch","Pad Thai":"thailaendisch",
+ "Bún Chả, Bún Bò, gegrilltes Fleisch mit Reisnudeln":"vietnamesisch","Bánh Mì":"vietnamesisch","Rohe Kräuterplatte, Salatbeilage":"vietnamesisch",
+ "Vietnamesischer Eiskaffee":"vietnamesisch","Sommerrollen":"vietnamesisch","Thai-Curry, indisches Curry":"thailaendisch",
+};
+Object.keys(FOOD_DATA).forEach(g => { FOOD_DATA[g] = FOOD_DATA[g].filter(e => { const to = MOVE_TO4[e[0]]; if(to && to !== g){ FOOD_DATA[to].push(e); return false; } return true; }); });
+
 // Flache Liste für Suche und Steckbrief: [Name, Stufe, Worauf achten, Suchbegriffe, Gruppe, Hinweis, Nährstoffe]
 const FOODS = [];
 FOOD_GROUPS.forEach(([g,,def]) => (FOOD_DATA[g]||[]).forEach(([n,st,ach,hint,nut,syn]) => FOODS.push([n, st, ach || def, syn||"", g, hint||"", nut ? nut.split(",") : []])));
@@ -2395,7 +2446,7 @@ const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
-const APP_VERSION = "14 · 06.11.2026";
+const APP_VERSION = "15 · 06.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -2697,7 +2748,7 @@ function foodResults(){
   return out;
 }
 /* Ohne Suchbegriff: alle Lebensmittel nach Gruppe und A bis Z */
-const KITCHENS = ["asiatisch","indisch","italienisch","spanisch","franzoesisch","griechisch","amerikanisch","mexikanisch","tuerkisch"];
+const KITCHENS = ["asiatisch","thailaendisch","vietnamesisch","indisch","italienisch","spanisch","franzoesisch","griechisch","amerikanisch","mexikanisch","tuerkisch"];
 function foodBrowse(){
   const g = ui.fGroup || "alle";
   const list = FOODS.filter(f => g==="alle" || f[4]===g).slice().sort((x,y)=>x[0].localeCompare(y[0],"de"));
