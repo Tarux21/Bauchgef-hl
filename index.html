@@ -275,7 +275,7 @@ ul.tips{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
   <button data-tab="lust"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Lust &amp; Hilfe</button>
   <button data-tab="ampel"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Darf ich?</button>
   <button data-tab="rezepte"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg>Rezepte</button>
-  <button data-tab="woche"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Woche</button>
+  <button data-tab="ziel"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><path d="M10.3 12l1.2 1.2 2.3-2.4"/></svg>Tagesziel</button>
 </div></nav>
 
 <div id="sheet" class="sheet" hidden><div class="box" role="dialog" aria-modal="true" id="sheetBox"></div></div>
@@ -2480,14 +2480,13 @@ const SUPP_HINTS = {
 };
 const TIMES = ["morgens","mittags","abends"];
 const GLASS_L = 0.25;
-const SLOTS = [["f","Frühstück","f"],["m","Mittag","h"],["a","Abend","h"],["s","Snack","s"]];
 const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
 
 /* ============================================================
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
-const APP_VERSION = "16 · 06.11.2026";
+const APP_VERSION = "17 · 06.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -2496,7 +2495,7 @@ function load(){
 }
 function normalize(s){
   if(!s || typeof s !== "object" || Array.isArray(s)) s = {};
-  s = Object.assign({et:null, persons:2, supps:["Folsäure","Jod"], taken:{}, plan:null, shopDone:{}, tab:"heute", fav:[], hidden:null, water:{}}, s || {});
+  s = Object.assign({et:null, persons:2, supps:["Folsäure","Jod"], taken:{}, tab:"heute", fav:[], hidden:null, water:{}}, s || {});
   // Voreinstellung: kein Lachs/Seelachs (nur Thunfisch). In den Einstellungen wieder einblendbar.
   if(!Array.isArray(s.hidden)) s.hidden = ["ofenlachs","seelachs"];
   if(!Array.isArray(s.allergies)) s.allergies = ["Walnuss","Kiwi"];
@@ -2505,7 +2504,9 @@ function normalize(s){
   if(!Array.isArray(s.suppList)) s.suppList = s.supps.map(n => ({name:n, time:(SUPP_HINTS[n]||["morgens"])[0], hint:(SUPP_HINTS[n]||["",""])[1]}));
   s.suppList = s.suppList.filter(x => x && typeof x.name === "string" && x.name.trim()).map(x => ({name:x.name.trim(), time:TIMES.includes(x.time)?x.time:"morgens", hint:String(x.hint||"")}));
   if(!(s.waterGoal >= 4 && s.waterGoal <= 12)) s.waterGoal = 6;
-  ["taken","shopDone","water"].forEach(k => { if(!s[k] || typeof s[k] !== "object") s[k] = {}; });
+  delete s.plan; delete s.shopDone; delete s.supps;
+  if(s.tab === "woche") s.tab = "heute";
+  ["taken","water"].forEach(k => { if(!s[k] || typeof s[k] !== "object") s[k] = {}; });
   if(s.et && !/^\d{4}-\d{2}-\d{2}$/.test(s.et)) s.et = null;
   return s;
 }
@@ -2523,7 +2524,6 @@ function todayISO(d=new Date()){ return d.getFullYear()+"-"+String(d.getMonth()+
 function dayNum(iso){ const [y,m,d]=iso.split("-").map(Number); return Math.round(Date.UTC(y,m-1,d)/864e5); }
 function isoFromNum(n){ const d=new Date(n*864e5); return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0"); }
 function fmtDate(iso){ const [y,m,d]=iso.split("-"); return d+"."+m+"."+y; }
-function mondayNum(n){ const wd=(new Date(n*864e5).getUTCDay()+6)%7; return n-wd; }
 function pregnancy(){
   if(!S.et) return null;
   const pd = 280 - (dayNum(S.et) - dayNum(todayISO()));
@@ -2533,41 +2533,9 @@ function pregnancy(){
 }
 
 /* ============================================================
-   WOCHENPLAN
+   REZEPT-HILFEN
    ============================================================ */
 const byId = Object.fromEntries(RECIPES.map(r=>[r.id,r]));
-function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
-function weighted(list){ // Favoriten kommen doppelt in den Topf
-  return shuffle(list.flatMap(r => S.fav.includes(r.id) ? [r,r] : [r])).map(r=>r.id).filter((id,i,a)=>a.indexOf(id)===i);
-}
-function makePlan(startNum, tries){
-  const P = pregnancy(); const tri = P ? P.tri : 2;
-  const fits = r => visible(r) && (!r.tri || r.tri.includes(tri) || tri===1);
-  const main = RECIPES.filter(r=>r.type==="h" && fits(r));
-  // Fisch: bis zu 2× pro Woche, davon höchstens 1× Thunfisch
-  const fishPick = []; let tuna = 0;
-  for(const id of weighted(main.filter(r=>r.fish))){ const r=byId[id]; if(fishPick.length>=2) break; if(r.tuna){ if(tuna) continue; tuna++; } fishPick.push(id); }
-  const other = weighted(main.filter(r=>!r.fish));
-  const pool = []; while(pool.length < 14 - fishPick.length && other.length) pool.push(...other);
-  const mains = shuffle(fishPick.concat(pool.slice(0, 14 - fishPick.length)));
-  const brk = weighted(RECIPES.filter(r=>r.type==="f" && fits(r)));
-  const snk = weighted(RECIPES.filter(r=>r.type==="s" && visible(r)));
-  const at = (a,i) => a.length ? a[i % a.length] : null;
-  const days = [];
-  for(let i=0;i<7;i++) days.push({f: at(brk,i), m: mains[i*2]||null, a: mains[i*2+1]||null, s: at(snk,i)});
-  // Kein Gericht zweimal am selben Tag: dann neu mischen
-  if(days.some(d=>d.m && d.m===d.a) && (tries||0) < 50) return makePlan(startNum, (tries||0)+1);
-  return {start: isoFromNum(startNum), days};
-}
-function ensurePlan(){
-  const mon = mondayNum(dayNum(todayISO()));
-  if(!S.plan || dayNum(S.plan.start) !== mon){ S.plan = makePlan(mon); S.shopDone = {}; save(); }
-}
-function todayIndex(){ return dayNum(todayISO()) - dayNum(S.plan.start); }
-
-/* ============================================================
-   EINKAUFSLISTE
-   ============================================================ */
 function fmtNum(x){ const r = Math.round(x*100)/100; return String(r).replace(".",","); }
 function scaleAmount(q,u,factor){
   let v = q*factor;
@@ -2575,44 +2543,12 @@ function scaleAmount(q,u,factor){
   else if(u==="g"||u==="ml") v = Math.round(v/5)*5;
   return v;
 }
-// EL/TL werden mit g bzw. ml derselben Zutat zusammengezählt (ungefähre Umrechnung).
-const SPOON = {ml:{EL:15,TL:5}, g:{EL:10,TL:4}};
-function shoppingList(){
-  const f = S.persons/2, byName = {};
-  S.plan.days.forEach(d => ["f","m","a","s"].forEach(k => {
-    const r = byId[d[k]]; if(!r) return;
-    r.ing.forEach(([q,u,n,g]) => {
-      const it = byName[n] = byName[n] || {n,g,units:{}};
-      it.units[u] = (it.units[u]||0) + q*f;
-    });
-  }));
-  const out = {};
-  Object.values(byName).forEach(it => {
-    const U = it.units;
-    const base = U.ml!==undefined ? "ml" : U.g!==undefined ? "g" : null;
-    if(base){ ["EL","TL"].forEach(sp => { if(U[sp]){ U[base] += U[sp]*SPOON[base][sp]; delete U[sp]; } }); }
-    else if(U.EL!==undefined && U.TL!==undefined){ U.EL += U.TL/3; delete U.TL; }
-    const parts = [];
-    Object.entries(U).forEach(([u,q]) => {
-      if(u==="Prise") return;
-      q = scaleAmount(q,u,1);
-      if(u==="EL"||u==="TL") q = Math.ceil(q*2)/2;
-      if(u==="g" && q>=1000) parts.push(fmtNum(q/1000)+" kg");
-      else if(u==="ml" && q>=1000) parts.push(fmtNum(q/1000)+" l");
-      else parts.push(fmtNum(q)+" "+u);
-    });
-    (out[it.g] = out[it.g] || []).push({key:it.n, n:it.n, amt:parts.join(" + ")});
-  });
-  Object.values(out).forEach(a=>a.sort((x,y)=>x.n.localeCompare(y.n,"de")));
-  return out;
-}
-
 /* ============================================================
    ANSICHT
    ============================================================ */
 const $app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let ui = {craving:"schoko", complaint:"uebelkeit", lTab:"lust", rType:"alle", rNut:null, q:"", wTab:"plan"};
+let ui = {craving:"schoko", complaint:"uebelkeit", lTab:"lust", rType:"alle", rNut:null, q:""};
 
 function setTab(t){
   S.tab = t; save();
@@ -2620,8 +2556,7 @@ function setTab(t){
   render(); window.scrollTo(0,0);
 }
 function render(){
-  ensurePlan();
-  const v = {heute:viewHeute, lust:viewLust, ampel:viewAmpel, rezepte:viewRezepte, woche:viewWoche}[S.tab] || viewHeute;
+  const v = {heute:viewHeute, lust:viewLust, ampel:viewAmpel, rezepte:viewRezepte, ziel:viewZiel}[S.tab] || viewHeute;
   $app.innerHTML = v();
 }
 
@@ -2669,14 +2604,10 @@ function viewHeute(){
   html += viewWeekCard(P);
   html += `<section class="view" style="gap:10px"><h2>Jetzt wichtig</h2><div class="nut">${T.focus.map(([b,t])=>`<div><span class="ni" aria-hidden="true">${nutIcon(b)}</span><b>${esc(b)}</b>${esc(t)}</div>`).join("")}</div></section>`;
 
-  const di = todayIndex(), day = S.plan.days[di];
-  html += `<section class="panel"><div class="head"><h2>Heute im Plan</h2><button class="btn ghost small" data-tab="woche">Woche</button></div><div class="meals">
-    ${SLOTS.map(([k,lab])=>{ const r=byId[day[k]]; return r?`<button class="meal" data-recipe="${r.id}"><span class="slot">${lab}</span><span class="name">${esc(r.name)}</span><span class="go" aria-hidden="true">›</span></button>`:""; }).join("")}
-  </div></section>`;
-
-  html += viewDayGoal();
-  html += `<div class="tip"><b>Tipp für das ${T.name}:</b> ${esc(T.tip)}</div>`;
   return `<div class="view">${html}${disclaimer()}</div>`;
+}
+function viewZiel(){
+  return `<div class="view"><div class="head"><div><h1>Tagesziel</h1><p class="muted" style="margin:4px 0 0">Trinken und Nahrungsergänzungen für heute.</p></div><button class="btn ghost small" data-act="settings">Anpassen</button></div>${viewDayGoal()}${disclaimer()}</div>`;
 }
 
 /* ---------- Tagesziel: Ring fürs Trinken (außen) und Supplements (innen) mit Baby ---------- */
@@ -2723,7 +2654,6 @@ function viewDayGoal(){
   const items = S.suppList.map(x => { const on = st.taken.includes(x.name);
     return `<button class="dg-item" data-take="${esc(x.name)}" aria-pressed="${on}"><span class="dg-box" aria-hidden="true"></span><span class="dg-name">${esc(x.name)}</span><small>${esc(x.time)}${x.hint?`<br>${esc(x.hint)}`:""}</small></button>`; }).join("");
   return `<section class="panel daygoal" aria-label="Tagesziel">
-    <div class="head" style="align-items:baseline"><h2>Tagesziel</h2><button class="btn ghost small" data-act="settings">Anpassen</button></div>
     <div class="dg-ring">${ringSVG(st.wf, st.tf, 210, true, all?1:Math.min(.99,mood))}</div>
     <div class="dg-status">${status}</div>
     <div class="dg-week" aria-label="Letzte 7 Tage">${days.join("")}</div>
@@ -2916,34 +2846,6 @@ function viewRezepte(){
     ${disclaimer()}</div>`;
 }
 
-function viewWoche(){
-  const seg = `<div class="seg" role="group" aria-label="Ansicht"><button data-wtab="plan" aria-pressed="${ui.wTab==="plan"}">Wochenplan</button><button data-wtab="einkauf" aria-pressed="${ui.wTab==="einkauf"}">Einkaufsliste</button></div>`;
-  const startN = dayNum(S.plan.start);
-  if(ui.wTab==="plan"){
-    const ti = todayIndex();
-    const days = S.plan.days.map((d,i)=>`<section class="panel day${i===ti?" today":""}"><h3>${WEEKDAYS[i]}<span class="small muted">${fmtDate(isoFromNum(startN+i)).slice(0,6)}${i===ti?" · heute":""}</span></h3>
-      ${SLOTS.map(([k,lab,type])=>`<div class="pslot"><span>${lab}</span><select data-day="${i}" data-slot="${k}" aria-label="${WEEKDAYS[i]} ${lab}">
-        <option value="">– nichts –</option>${RECIPES.filter(r=>r.type===type && (visible(r) || d[k]===r.id)).map(r=>`<option value="${r.id}" ${d[k]===r.id?"selected":""}>${esc(r.name)}</option>`).join("")}
-      </select></div>`).join("")}</section>`).join("");
-    let fishCount=0, tunaCount=0; S.plan.days.forEach(d=>["m","a"].forEach(k=>{const r=byId[d[k]]; if(r&&r.fish){fishCount++; if(r.tuna) tunaCount++;}}));
-    let fishTip;
-    if(!fishCount) fishTip = "Kein Fisch im Plan. Sprich mit der Ärztin, ob eine Omega-3-Kapsel (DHA) sinnvoll ist.";
-    else fishTip = `${fishCount}× Fisch eingeplant${tunaCount?`, davon ${tunaCount}× Thunfisch`:""}.` + (tunaCount>1?" Thunfisch besser höchstens 1× pro Woche (Quecksilber).": fishCount===tunaCount ? " Mehr Thunfisch ist wegen Quecksilber nicht ratsam. Sprich mit der Ärztin, ob zusätzlich eine Omega-3-Kapsel (DHA) sinnvoll ist." : " Empfohlen sind 1–2 Fischmahlzeiten pro Woche.");
-    return `<div class="view"><h1>Diese Woche</h1>${seg}
-      <div class="tip">${fishTip}</div>
-      <button class="btn ghost" data-act="newplan">Woche neu vorschlagen</button>
-      ${days}${disclaimer()}</div>`;
-  }
-  const L = shoppingList();
-  const groupsHtml = Object.keys(GROUPS).filter(g=>L[g]).map(g=>`<section class="panel shop-group"><h3>${GROUPS[g]}</h3>${g==="g"?`<p class="small muted" style="margin:0">Meist schon zu Hause, kurz nachsehen.</p>`:""}
-    ${L[g].map(it=>`<label class="shop-item${S.shopDone[it.key]?" done":""}"><input type="checkbox" data-shop="${esc(it.key)}" ${S.shopDone[it.key]?"checked":""}><span class="nm">${esc(it.n)}</span><span class="amt">${esc(it.amt)}</span></label>`).join("")}</section>`).join("");
-  return `<div class="view"><h1>Einkaufsliste</h1>${seg}
-    <div class="field"><label for="persons">Für wie viele Personen?</label><select id="persons">${[1,2,3,4,5,6].map(n=>`<option ${S.persons===n?"selected":""}>${n}</option>`).join("")}</select></div>
-    <p class="small muted" style="margin:0">Alles für den Wochenplan vom ${fmtDate(S.plan.start)}. Abgehakt bleibt abgehakt, bis die nächste Woche beginnt.</p>
-    <div class="head"><button class="btn ghost small" data-act="copyshop">Liste kopieren</button><button class="btn ghost small" data-act="clearshop">Haken entfernen</button></div>
-    ${groupsHtml}${disclaimer()}</div>`;
-}
-
 function disclaimer(){ return `<p class="disclaimer">Bauchgefühl ersetzt keine Beratung durch Ärztin oder Hebamme. <button class="btn ghost small" data-act="sources" style="padding:2px 8px;font-size:12.5px">Quellen</button></p>`; }
 
 /* ---------- Blatt (Rezept, Einstellungen, Quellen) ---------- */
@@ -2955,8 +2857,6 @@ function openRecipe(id){
   const r = byId[id]; if(!r) return;
   const f = S.persons/2;
   const ing = r.ing.map(([q,u,n])=>{ const v=scaleAmount(q,u,f); return `<li><span>${u==="Prise"?"1 Prise":fmtNum(v)+" "+u}</span><span>${esc(n)}</span></li>`; }).join("");
-  const ti = Math.max(0, Math.min(6, todayIndex()));
-  const slotsFor = SLOTS.filter(s=>s[2]===r.type);
   openSheet(`<div class="head"><h2>${esc(r.name)}</h2><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     <div class="meta"><span>${r.min} Min.</span><span>${TYPES[r.type]}</span><span>für ${S.persons} ${S.persons===1?"Person":"Personen"}</span></div>
     <div class="nut-tag">${r.nut.map(esc).join(" · ")}</div>
@@ -2965,11 +2865,7 @@ function openRecipe(id){
     ${r.safe?`<div class="safe"><b>Sicher essen:</b> ${esc(r.safe)}</div>`:""}
     <h3>Zutaten</h3><ul class="ing">${ing}</ul>
     <h3>Zubereitung</h3><ol>${r.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
-    ${r.tip?`<div class="tip">${esc(r.tip)}</div>`:""}
-    <h3>In den Wochenplan</h3>
-    <div class="addplan"><select id="apDay" aria-label="Tag">${WEEKDAYS.map((w,i)=>`<option value="${i}" ${i===ti?"selected":""}>${w}</option>`).join("")}</select>
-      <select id="apSlot" aria-label="Mahlzeit">${slotsFor.map(s=>`<option value="${s[0]}">${s[1]}</option>`).join("")}</select>
-      <button class="btn small" data-act="addplan" data-id="${r.id}">Eintragen</button></div>`, r.name);
+    ${r.tip?`<div class="tip">${esc(r.tip)}</div>`:""}`, r.name);
 }
 function openSettings(){
   openSheet(`<div class="head"><h2>Einstellungen</h2><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
@@ -2989,13 +2885,13 @@ function openSettings(){
     <section class="panel"><h3>Ausgeblendete Rezepte</h3>
       ${S.hidden.length?`<p class="small muted" style="margin:0">Antippen blendet das Rezept wieder ein.</p><div class="chips">${S.hidden.map(id=>byId[id]?`<button class="chip hidden-chip" data-unhide="${id}">${esc(byId[id].name)} ✕</button>`:"").join("")}</div>`:`<p class="small muted" style="margin:0">Keine. Im Rezept auf „Nicht mehr vorschlagen“ tippen, um eines auszublenden.</p>`}</section>
     <section class="panel"><h3>Datensicherung</h3>
-      <p class="small muted" style="margin:0">Alles ist nur auf diesem Handy gespeichert. Eine Sicherung enthält Termin, Wochenplan, Favoriten, Allergien und Haken. Am besten per WhatsApp oder Mail an jemanden schicken oder in Drive bzw. iCloud ablegen.</p>
+      <p class="small muted" style="margin:0">Alles ist nur auf diesem Handy gespeichert. Eine Sicherung enthält Termin, Tagesziel, Favoriten und Allergien. Am besten per WhatsApp oder Mail an jemanden schicken oder in Drive bzw. iCloud ablegen.</p>
       <p style="margin:0"><b>Letzte Sicherung:</b> <span id="lastBackup">${S.lastBackup ? fmtDate(S.lastBackup) : "noch keine"}</span></p>
       <div class="btnrow"><button class="btn" data-act="backup">Sichern und teilen</button><button class="btn ghost" data-act="restore">Wiederherstellen</button></div>
       <input type="file" id="restoreFile" accept=".txt,.json,text/plain,application/json" hidden>
       <div id="restoreConfirm" hidden></div></section>
     <section class="panel"><h3>Daten</h3><p class="small muted" style="margin:0">Die App schickt nichts von selbst ins Internet. App-Version ${APP_VERSION}</p>
-      <button class="btn ghost" data-act="reset">Alle Daten löschen</button><div id="resetConfirm" hidden><p style="margin:0">Wirklich alles löschen? Termin, Wochenplan und Haken gehen verloren.</p><div class="head" style="justify-content:flex-start"><button class="btn" data-act="resetYes" style="background:var(--no)">Ja, löschen</button><button class="btn ghost" data-act="resetNo">Abbrechen</button></div></div></section>`, "Einstellungen");
+      <button class="btn ghost" data-act="reset">Alle Daten löschen</button><div id="resetConfirm" hidden><p style="margin:0">Wirklich alles löschen? Termin, Tagesziel und Favoriten gehen verloren.</p><div class="head" style="justify-content:flex-start"><button class="btn" data-act="resetYes" style="background:var(--no)">Ja, löschen</button><button class="btn ghost" data-act="resetNo">Abbrechen</button></div></div></section>`, "Einstellungen");
 }
 function openSources(){
   openSheet(`<div class="head"><h2>Quellen und Hinweis</h2><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
@@ -3068,7 +2964,6 @@ document.addEventListener("click", e => {
   if(b.dataset.recipe){ openRecipe(b.dataset.recipe); return; }
   if(b.dataset.crave){ ui.craving=b.dataset.crave; render(); return; }
   if(b.dataset.rtype){ ui.rType=b.dataset.rtype; render(); return; }
-  if(b.dataset.wtab){ ui.wTab=b.dataset.wtab; render(); return; }
   if(b.dataset.week){ ui.week=+b.dataset.week; render(); const c=document.querySelector(".weekcard"); if(c) c.scrollIntoView({block:"nearest"}); return; }
   if(b.dataset.food){ openFood(+b.dataset.food); return; }
   if(b.dataset.fgroup){ ui.fGroup=b.dataset.fgroup; document.getElementById("flist").innerHTML=foodResults();
@@ -3103,18 +2998,6 @@ document.addEventListener("click", e => {
     if(S.suppList.some(x=>norm(x.name)===norm(n))){ toast(`„${n}“ ist schon eingetragen.`); return; }
     S.suppList.push({name:n, time:document.getElementById("suppTime").value, hint:(document.getElementById("suppHint").value||"").trim()});
     save(); openSettings(); render(); toast(`„${n}“ hinzugefügt`); }
-  else if(a==="newplan"){ S.plan = makePlan(dayNum(S.plan.start)); S.shopDone={}; save(); render(); toast("Neuer Wochenplan erstellt"); }
-  else if(a==="addplan"){
-    const d=+document.getElementById("apDay").value, s=document.getElementById("apSlot").value;
-    S.plan.days[d][s]=b.dataset.id; save(); closeSheet(); render(); toast(`Eingetragen: ${WEEKDAYS[d]}, ${SLOTS.find(x=>x[0]===s)[1]}`);
-  }
-  else if(a==="clearshop"){ S.shopDone={}; save(); render(); }
-  else if(a==="copyshop"){
-    const L=shoppingList(); const txt=Object.keys(GROUPS).filter(g=>L[g]).map(g=>GROUPS[g]+":\n"+L[g].filter(i=>!S.shopDone[i.key]).map(i=>"- "+(i.amt?i.amt+" ":"")+i.n).join("\n")).join("\n\n");
-    const done=()=>toast("Einkaufsliste kopiert");
-    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,()=>toast("Kopieren ging nicht. Bitte lange auf den Text drücken."));
-    else toast("Kopieren wird hier nicht unterstützt.");
-  }
   else if(a==="backup"){ doBackup(); }
   else if(a==="restore"){ const i=document.getElementById("restoreFile"); i.value=""; i.click(); }
   else if(a==="restoreNo"){ pendingRestore=null; document.getElementById("restoreConfirm").hidden=true; }
@@ -3126,10 +3009,7 @@ document.addEventListener("click", e => {
 document.addEventListener("change", e => {
   const t = e.target;
   if(t.id==="waterGoal"){ S.waterGoal=+t.value; save(); render(); }
-  else if(t.dataset.shop){ if(t.checked) S.shopDone[t.dataset.shop]=1; else delete S.shopDone[t.dataset.shop]; save(); t.closest(".shop-item").classList.toggle("done",t.checked); }
-  else if(t.dataset.slot){ S.plan.days[+t.dataset.day][t.dataset.slot]=t.value||null; save(); }
   else if(t.id==="restoreFile" && t.files && t.files[0]){ readRestore(t.files[0]); }
-  else if(t.id==="persons"){ S.persons=+t.value; save(); render(); }
   else if(t.id==="rnut"){ ui.rNut=t.value||null; render(); }
   else if(t.id==="lmp" && t.value){ const et=document.getElementById("et"); if(et) et.value=isoFromNum(dayNum(t.value)+280); }
 });
