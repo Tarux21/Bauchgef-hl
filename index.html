@@ -141,6 +141,21 @@ input[type=date],input[type=number],input[type=search],select{border:1px solid v
 .a-info{background:var(--card);border:1px solid var(--line)} .a-info .verdict{color:var(--muted);font-size:22px}
 input[type=text]{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
 
+/* Lebensmittel-Liste und Steckbrief */
+button.frow{width:100%;text-align:left;font:inherit;color:inherit}
+.groups{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.groups .chip{white-space:nowrap;flex:none}
+.abc{display:flex;flex-wrap:wrap;gap:2px}
+.abc button{border:0;background:none;color:var(--sage);font-weight:800;font-size:14px;min-width:28px;height:30px;border-radius:8px}
+.abc button:active{background:var(--sage-soft)}
+.letter{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 12px);color:var(--sage);margin-top:4px}
+.answer .more{align-self:flex-start;margin-top:4px;background:var(--surface)}
+.fsec{display:flex;flex-direction:column;gap:6px;background:var(--card);border-radius:16px;padding:10px 12px;font-size:15px}
+.fsec > b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fsec .meal{grid-template-columns:86px 1fr auto;padding:8px 0}
+.nchip{border-radius:999px;padding:4px 11px;font-size:13px;font-weight:700;background:var(--t2);color:var(--t2-fg)}
+.nchip:nth-child(4n+1){background:var(--t1);color:var(--t1-fg)} .nchip:nth-child(4n+3){background:var(--t3);color:var(--t3-fg)} .nchip:nth-child(4n+4){background:var(--t4);color:var(--t4-fg)}
+
 /* Deine Woche */
 .wnav{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
 .wnav .wtitle{text-align:center;min-width:0}
@@ -1167,245 +1182,437 @@ const COMPLAINTS = [
    doctor:"Starke Müdigkeit kann auf Eisenmangel hinweisen. Den Eisenwert bei der Ärztin prüfen lassen."},
 ];
 
-/* Lebensmittel-Ampel. [Name, Stufe, Begründung, Suchbegriffe]
+/* ============================================================
+   LEBENSMITTEL (Steckbriefe)
+   Gruppe: [Schlüssel, Name, Standard „Worauf achten“]
+   Eintrag: [Name, Stufe, Worauf achten ("" = Standard der Gruppe), Hinweis, Nährstoffe, Suchbegriffe]
    Stufen: ok = unbedenklich, warn = mit Vorsicht, no = meiden
-   Grundlage: BfR „Sicher verpflegt“, Netzwerk Gesund ins Leben, DGE. */
-const L_LIST = "Listerien-Gefahr.";
-const FOODS = [
- /* ---------- Milch & Milchprodukte ---------- */
- ["Milch, pasteurisiert / H-Milch / ESL-Milch","ok","Unbedenklich, gute Calciumquelle.","vollmilch fettarme milch frischmilch kuhmilch laktosefrei"],
- ["Rohmilch, Vorzugsmilch, Milch ab Hof","no","Listerien und andere Keime. Nur abgekocht verwenden.","milchtankstelle hofmilch"],
- ["Joghurt","ok","Unbedenklich, gute Calcium- und Eiweißquelle.","naturjoghurt fruchtjoghurt griechischer joghurt"],
- ["Skyr","ok","Unbedenklich, viel Eiweiß.",""],
- ["Quark","ok","Unbedenklich.","magerquark speisequark kräuterquark"],
- ["Kefir, Buttermilch, Dickmilch","ok","Aus pasteurisierter Milch unbedenklich.","sauermilch"],
- ["Kefir aus Rohmilch","no",L_LIST,""],
- ["Sahne, Schmand, saure Sahne, Crème fraîche","ok","Unbedenklich.","schlagsahne kochsahne creme fraiche sauerrahm"],
- ["Butter","ok","Markenbutter ist aus pasteurisiertem Rahm.","süßrahmbutter sauerrahmbutter"],
- ["Rohmilchbutter, Butter vom Hof","warn","Kann aus Rohmilch sein. Zum Kochen und Backen erhitzen.","landbutter"],
- ["Pudding","ok","Unbedenklich.","grießpudding vanillepudding"],
- ["Milchreis, Grießbrei","ok","Unbedenklich.",""],
- ["Ayran, Lassi","ok","Aus pasteurisiertem Joghurt unbedenklich.",""],
- ["Kakao, Kakaogetränk","ok","Enthält nur wenig Koffein.","trinkschokolade heiße schokolade kakaopulver"],
- ["Milchshake aus dem Café","warn","Oft mit Softeis zubereitet. Lieber selbst mixen.","shake"],
- ["Sojamilch, Hafermilch, Reismilch","ok","Unbedenklich. Möglichst mit Calcium angereichert. Reisdrinks enthalten etwas Arsen, daher nicht nur Reismilch.","pflanzenmilch sojadrink haferdrink"],
- ["Mandelmilch","ok","Unbedenklich, wenn keine Nussallergie besteht.","mandeldrink"],
-
- /* ---------- Käse ---------- */
- ["Parmesan, Grana Padano","ok","Lang gereifter Hartkäse, auch aus Rohmilch möglich. Rinde nicht mitessen.","parmigiano reggiano hartkäse"],
- ["Pecorino (Hartkäse)","ok","Lang gereift unbedenklich. Rinde entfernen.",""],
- ["Emmentaler, Bergkäse, Greyerzer, Comté, Appenzeller","ok","Hartkäse, auch aus Rohmilch möglich. Rinde entfernen.","gruyere allgäuer hartkäse schweizer käse"],
- ["Gouda, Edamer, Butterkäse, Tilsiter","ok","Supermarkt-Schnittkäse ist pasteurisiert. Rinde entfernen.","schnittkäse leerdammer maasdamer"],
- ["Bauernkäse aus Rohmilch (z. B. Boerenkaas)","no","Schnittkäse aus Rohmilch: Listerien.","rohmilchkäse"],
- ["Cheddar","ok","Unbedenklich. Rinde entfernen.",""],
- ["Manchego","warn","Nur aus pasteurisierter Milch oder lange gereift. Packung prüfen.",""],
- ["Mozzarella (pasteurisiert)","ok","Auf „aus pasteurisierter Milch“ achten.","büffelmozzarella mozzarella di bufala"],
- ["Burrata, Stracciatella","warn","Nur aus pasteurisierter Milch und ganz frisch.",""],
- ["Ricotta, Mascarpone","ok","Aus pasteurisierter Milch, gekühlt und rasch verbrauchen.",""],
- ["Frischkäse, Hüttenkäse","ok","Aus pasteurisierter Milch unbedenklich.","philadelphia körniger frischkäse cottage cheese doppelrahm"],
- ["Feta, Schafskäse, Hirtenkäse","warn","Nur aus pasteurisierter Milch. Packung prüfen.","weißkäse salakis"],
- ["Halloumi","ok","Wird gegrillt oder gebraten gegessen, unbedenklich.","grillkäse"],
- ["Schmelzkäse, Scheiblettenkäse, Kochkäse","ok","Durch die Herstellung erhitzt, unbedenklich.","streichkäse burgerkäse"],
- ["Raclette, überbackener Käse","ok","Durcherhitzt unbedenklich.","käse überbacken gratin"],
- ["Käsefondue","warn","Käse ist erhitzt, aber Fondue enthält meist Weißwein und Kirschwasser. Ohne Alkohol zubereiten.","fondue"],
- ["Brie, Camembert (pasteurisiert)","warn","Rinde entfernen oder im Ofen überbacken.","weichkäse"],
- ["Brie, Camembert aus Rohmilch","no",L_LIST,"camembert de normandie brie de meaux"],
- ["Ofen-Camembert, gebackener Brie","ok","Durch und durch heiß erhitzt unbedenklich.","backcamembert"],
- ["Ziegenkäse (Weichkäse, Rolle)","warn","Nur pasteurisiert, Rinde entfernen oder überbacken.","ziegenfrischkäse ziegenkäserolle chevre"],
- ["Gorgonzola, Blauschimmelkäse","warn","Kalt meiden. Erhitzt, z. B. in einer heißen Soße, ist er unbedenklich.","bergader cambozola stilton dolcelatte"],
- ["Roquefort","no","Blauschimmelkäse aus Rohmilch: Listerien.",""],
- ["Harzer, Handkäse, Quargel","no","Sauermilchkäse: hohe Listerien-Gefahr.","mainzer käse olmützer handkäs"],
- ["Limburger, Romadur, Münsterkäse, Taleggio","no","Käse mit Rotschmiere: Listerien auf der Rinde.","rotschmierkäse epoisses"],
- ["Geriebener Käse aus der Tüte","warn","Am besten erhitzt essen, z. B. überbacken.","reibekäse pizzakäse"],
- ["Käse von der Theke, frisch aufgeschnitten","warn","Frisch kaufen, kühl lagern, rasch essen.","käsetheke"],
-
- /* ---------- Fleisch ---------- */
- ["Rind, Schwein, Lamm, durchgegart","ok","Innen nicht mehr rosa.","rindfleisch schweinefleisch lammfleisch braten gulasch schnitzel kotelett"],
- ["Steak medium, rare, rosa","no","Toxoplasmose. Nur ganz durchgebraten (well done).","blutig rosa gebraten"],
- ["Roastbeef rosa","no","Nicht durchgegart: Toxoplasmose.",""],
- ["Entenbrust rosa, Lamm rosa","no","Nicht durchgegart: Toxoplasmose. Nur ganz durchgebraten.","ente lammkarree"],
- ["Hähnchen, Pute, Ente, durchgegart","ok","Vollständig durchgaren.","huhn chicken geflügel truthahn hühnchen chicken nuggets"],
- ["Hackfleisch, durchgebraten","ok","Innen grau, nicht mehr rosa.","gehacktes frikadelle bulette fleischpflanzerl hackbraten"],
- ["Mett, Hackepeter, Tatar, Carpaccio","no","Rohes Fleisch: Toxoplasmose, Listerien, Salmonellen.","mettbrötchen beefsteak tartar"],
- ["Vitello tonnato","no","Kalbfleisch meist rosa und Soße oft mit rohem Ei.",""],
- ["Wild (Reh, Hirsch, Wildschwein)","warn","Ganz durchgaren. Wegen möglicher Bleireste aus der Munition nur selten essen.","wildbret hase reh hirsch rehrucken rehrücken hirschgulasch wildgulasch wildschweinbraten"],
- ["Döner, Gyros","warn","Fleisch muss gut durchgegart sein. Soße nur aus pasteurisiertem Joghurt, Salat frisch.","dürüm kebab"],
- ["Burger (Restaurant)","warn","Nach „durchgebraten“ fragen. Keine selbstgemachten Soßen mit rohem Ei.","hamburger cheeseburger"],
- ["Bratwurst, Currywurst, Grillwurst","ok","Gut durchgebraten unbedenklich.","rostbratwurst thüringer nürnberger"],
- ["Wiener Würstchen, Frankfurter, Weißwurst","ok","Heiß gemacht essen, dann unbedenklich.","wiener würstchen bockwurst knacker"],
- ["Leberkäse (warm)","ok","Warm gegessen unbedenklich. Bayerischer Leberkäse enthält meist keine Leber.","fleischkäse leberkäs"],
- ["Fleischwurst, Lyoner, Mortadella, Bierschinken","warn","Brühwurst: kühl lagern, rasch verbrauchen. Am sichersten erhitzt.","brühwurst aufschnitt jagdwurst gelbwurst"],
- ["Kochschinken, Putenbrust-Aufschnitt","ok","Möglichst frisch aufgeschnitten kaufen und rasch verbrauchen.","gekochter schinken hinterschinken formfleisch"],
- ["Kassler, Kassler-Aufschnitt","ok","Gegart unbedenklich. Rasch verbrauchen.",""],
- ["Bacon, Frühstücksspeck","warn","Ist roh gepökelt. Nur knusprig durchgebraten essen.","speck bauchspeck"],
- ["Roher Speck, Schinkenspeck, Lardo","no","Roh gepökelt: Toxoplasmose, Listerien.","tiroler speck"],
- ["Salami, Cervelatwurst, Teewurst, Mettwurst","no","Rohwurst: Toxoplasmen und Listerien möglich.","rohwurst landjäger pfefferbeißer peperoni-salami streichmettwurst plockwurst"],
- ["Chorizo","warn","Meist Rohwurst. Nur durchgegart, z. B. im Eintopf.",""],
- ["Pizza mit Salami","warn","Die Salami wird auf der Pizza heiß, ganz sicher ist das aber nicht. Besser ein anderer Belag.","pizza salami"],
- ["Parmaschinken, Serrano, Prosciutto, Schwarzwälder Schinken","no","Roher Schinken: Toxoplasmose, Listerien.","rohschinken roher schinken serranoschinken parmaschinken lachsschinken katenschinken knochenschinken iberico jamon"],
- ["Bresaola, Bündnerfleisch, Coppa, Pancetta","no","Luftgetrocknetes Rohfleisch: Toxoplasmose, Listerien.","luftgetrocknet"],
- ["Leber","warn","Sehr viel Vitamin A. Im 1. Trimester meiden, danach höchstens selten.","rinderleber kalbsleber hühnerleber"],
- ["Leberwurst","warn","Enthält Leber (Vitamin A). Nur selten und in kleinen Mengen.","kalbsleberwurst"],
- ["Leberpastete, Pâté, Terrine","no","Listerien und viel Vitamin A.","pastete foie gras gänseleber"],
- ["Blutwurst, Sülze, Aspik","warn","Kühl lagern, rasch verbrauchen. Sülze kann Listerien enthalten.","presskopf schwartenmagen"],
- ["Fleischsalat, Wurstsalat","warn","Listerien möglich. Abgepackt kaufen, kühl lagern, schnell essen.",""],
-
- /* ---------- Fisch & Meeresfrüchte ---------- */
- ["Lachs, durchgegart","ok","Omega-3, Vitamin D, Jod. Innen nicht mehr glasig.","lachsfilet ofenlachs"],
- ["Räucherlachs, Graved Lachs","no","Kalt geräuchert oder gebeizt: Listerien.","gravlax lachsschinken fisch"],
- ["Stremellachs, heiß geräucherte Forelle, Makrele, Bückling","warn","Heiß geräuchert. Nur nochmal durcherhitzt essen, z. B. in Soße oder Auflauf.","räucherfisch räuchermakrele forellenfilet geräuchert"],
- ["Räucheraal","warn","Nur durcherhitzt essen. Aal enthält zudem oft Schadstoffe, besser meiden.","aal"],
- ["Kabeljau, Seelachs, Seehecht, Scholle, durchgegart","ok","Gut für Jod. Durchgaren, bis er sich in Lamellen löst.","dorsch fischfilet backfisch heilbutt rotbarsch pangasius tilapia alaska-seelachs lengfisch steinbeißer"],
- ["Forelle, Dorade, Zander, Wolfsbarsch, durchgegart","ok","Durchgegart unbedenklich.","barsch saibling karpfen"],
- ["Hering, Makrele, Sardinen, durchgegart","ok","Fettreicher Fisch mit viel Omega-3.","brathering"],
- ["Sardinen, Makrele aus der Dose","ok","In der Dose erhitzt, unbedenklich.","ölsardinen"],
- ["Sardellen, Anchovis","warn","Gesalzen, nicht erhitzt. Auf heißer Pizza oder in Soße mitgegart in Ordnung.",""],
- ["Matjes, Rollmops, Bismarckhering","no","Nicht erhitzt (nur gesalzen oder mariniert): Listerien, Parasiten.","fischbrötchen brathering-roh"],
- ["Fischbrötchen mit Backfisch","ok","Frisch gebraten unbedenklich.",""],
- ["Thunfisch aus der Dose","warn","Quecksilber. Höchstens etwa 1 Portion pro Woche.","thunfisch dose tunfisch thunfischsalat"],
- ["Thunfischsteak","warn","Wird oft rosa serviert: nur ganz durchgebraten. Wegen Quecksilber höchstens 1× pro Woche.","thunfisch steak"],
- ["Tataki, rosa gebratener Thunfisch","no","Nicht durchgegart und Quecksilber.","tataki"],
- ["Schwertfisch, Hai, Marlin, Königsmakrele","no","Hohe Quecksilberwerte.","schillerlocken haifisch"],
- ["Hecht","warn","Raubfisch mit erhöhtem Quecksilber. Nur selten.",""],
- ["Fischstäbchen","ok","Gut durchbraten.",""],
- ["Sushi mit rohem Fisch, Sashimi","no","Roher Fisch: Listerien, Parasiten.","maki nigiri sashimi lachsnigiri"],
- ["Sushi vegetarisch oder mit gegartem Fisch","warn","Nur frisch zubereitet aus gutem Laden, nicht vom Vortag.","gurkenmaki avocadomaki inside out california roll"],
- ["Ceviche, Poke Bowl mit rohem Fisch","no","Roher Fisch: Listerien, Parasiten.","poké tartar fisch"],
- ["Garnelen, Shrimps, gegart","ok","Nur vollständig gegart.","scampi gambas krabben gekocht"],
- ["Nordseekrabben, Krabbencocktail","warn","Verzehrfertig, aber kalt gegessen: Listerien möglich. Lieber erhitzt.","krabbensalat"],
- ["Muscheln, Tintenfisch, Calamari, gegart","ok","Nur vollständig gegart. Geschlossene Muscheln wegwerfen.","miesmuscheln venusmuscheln oktopus pulpo"],
- ["Austern, rohe Meeresfrüchte","no","Roh: Noroviren, Bakterien.",""],
- ["Surimi","warn","Kalt gegessen sind Listerien möglich. Gegart unbedenklich.","krebsfleisch imitat"],
- ["Kaviar, Fischrogen","no","Roh: Listerien.","lachskaviar forellenkaviar"],
- ["Fischsauce, Worcestersauce","ok","In üblichen Mengen unbedenklich.",""],
-
- /* ---------- Eier & Soßen ---------- */
- ["Eier, hart gekocht","ok","Eigelb fest, unbedenklich.","gekochtes ei frühstücksei hart"],
- ["Rührei, Spiegelei, Omelett, durchgegart","ok","Ganz durchgaren, nichts mehr flüssig.","spiegelei beidseitig"],
- ["Weiches Ei, flüssiges Eigelb, pochiertes Ei","no","Salmonellen.","wachsweich onsen ei verlorenes ei eggs benedict"],
- ["Tiramisu, Mousse au Chocolat, Zabaione","no","Meist mit rohem Ei: Salmonellen. Ausnahme: ausdrücklich ohne rohes Ei.","rohes ei dessert"],
- ["Selbstgemachtes Eis mit Ei","no","Rohes Ei: Salmonellen.",""],
- ["Roher Kuchen- oder Keksteig","no","Rohes Ei und rohes Mehl (E. coli).","teig naschen cookie dough"],
- ["Mayonnaise, Remoulade aus dem Glas","ok","Industriell mit pasteurisiertem Ei hergestellt.","majo salatcreme"],
- ["Selbstgemachte Mayonnaise, Aioli, Caesar-Dressing","no","Rohes Ei: Salmonellen.","knoblauchmayo"],
- ["Sauce Hollandaise, Béarnaise","warn","Selbstgemacht oft nicht heiß genug. Fertigprodukte sind unbedenklich.",""],
- ["Spaghetti Carbonara","warn","Das Ei stockt oft nicht ganz. Nur wenn die Soße richtig heiß und gebunden ist.",""],
- ["Baiser, Meringue","ok","Durchgebacken unbedenklich.",""],
- ["Pfannkuchen, Waffeln, Kaiserschmarrn","ok","Durchgebacken unbedenklich.","crepes eierkuchen"],
- ["Eierlikör","no","Alkohol und rohes Ei.",""],
- ["Ketchup, Senf, Sojasauce","ok","Unbedenklich.",""],
- ["Pesto aus dem Glas","ok","Unbedenklich.","pesto"],
- ["Tzatziki","ok","Aus pasteurisiertem Joghurt unbedenklich. Gekühlt und frisch.",""],
-
- /* ---------- Obst & Gemüse ---------- */
- ["Obst, gewaschen","ok","Gründlich waschen, wegen Erde (Toxoplasmose).","äpfel birnen bananen orangen trauben pfirsich pflaumen kirschen mango"],
- ["Gemüse, gewaschen","ok","Gründlich waschen. Roh oder gegart unbedenklich.","möhren karotten tomaten gurken paprika zucchini brokkoli blumenkohl kohl spinat pastinake kürbis"],
- ["Kartoffeln, Süßkartoffeln","ok","Grüne Stellen und Keime großzügig wegschneiden.",""],
- ["Avocado","ok","Unbedenklich, liefert Folsäure.",""],
- ["Ananas","ok","In normalen Mengen unbedenklich. Dass Ananas Wehen auslöst, ist nicht belegt.",""],
- ["Papaya, reif","ok","Reif unbedenklich.",""],
- ["Papaya, unreif (grün)","warn","Unreife Papaya enthält Milchsaft (Latex). Besser meiden.","grüner papayasalat som tam"],
- ["Grapefruit","ok","Unbedenklich. Kann aber die Wirkung mancher Medikamente verändern.",""],
- ["Kiwi","ok","Unbedenklich, viel Vitamin C.",""],
- ["Beeren, frisch","ok","Gründlich waschen.","erdbeeren heidelbeeren himbeeren brombeeren"],
- ["TK-Beeren","warn","Vor dem Essen kurz durchkochen (Noroviren, Hepatitis A).","tiefkühlbeeren gefrorene beeren"],
- ["TK-Gemüse","warn","Nur gegart essen, nicht roh in Salat oder Smoothie (Listerien).","tiefkühlgemüse tk-mais erbsen tiefgekühlt"],
- ["Abgepackter, geschnittener Salat","warn","Listerien möglich. Besser frischen Salat selbst waschen.","tütensalat salatmischung rucola tüte"],
- ["Salat, frisch gewaschen","ok","Gründlich waschen.","kopfsalat feldsalat eisberg rucola römersalat"],
- ["Salatbar, Salat im Restaurant","warn","Unsicher, wie lange er steht und wie gut er gewaschen ist. Lieber warme Gerichte.","salatbuffet"],
- ["Melone, vorgeschnitten","warn","Listerien möglich. Lieber ganze Melone selbst schneiden.","wassermelone honigmelone"],
- ["Obstsalat von der Theke","warn","Lieber selbst frisch schneiden.",""],
- ["Sprossen, Keimlinge, roh","no","Bakterien. Nur durchgegart.","sojasprossen mungbohnensprossen alfalfa"],
- ["Kresse","warn","Gründlich waschen, wie Sprossen anfällig für Keime.",""],
- ["Grüne Bohnen, Kidneybohnen, roh","no","Roh giftig (für alle). Immer gut kochen.",""],
- ["Hülsenfrüchte, gegart","ok","Sehr gut: Eisen, Folsäure, Ballaststoffe.","linsen kichererbsen bohnen erbsen"],
- ["Pilze aus dem Laden, gegart","ok","Gut durchgaren.","champignons pfifferlinge austernpilze"],
- ["Wildpilze, selbst gesammelt","warn","Verwechslungsgefahr und Schadstoffe. Nur selten und gut bestimmt.","steinpilze maronen"],
- ["Rhabarber","ok","Gekocht unbedenklich, Blätter nicht essen.",""],
- ["Holunderbeeren","warn","Nur gekocht, roh giftig.",""],
- ["Oliven, Gewürzgurken, Sauerkraut, Kapern","ok","Gegen Lust auf Saures.","essiggurken"],
- ["Trockenobst","ok","Datteln, Aprikosen, Pflaumen: gut für Eisen und Verdauung.","rosinen datteln feigen getrocknet trockenpflaumen"],
- ["Frische Kräuter","ok","Gründlich waschen.","petersilie schnittlauch basilikum dill koriander minze"],
- ["Knoblauch, Zwiebeln, Ingwer","ok","In normalen Mengen unbedenklich.",""],
- ["Algen, Nori, Wakame","warn","Teils extrem viel Jod. Nur kleine Mengen, z. B. ein Nori-Blatt.","seetang kombu algensalat"],
-
- /* ---------- Getreide, Brot, Nüsse ---------- */
- ["Brot, Brötchen, Vollkornbrot","ok","Unbedenklich. Vollkorn liefert Ballaststoffe und Eisen.","toast baguette brezel croissant semmel"],
- ["Nudeln, Reis, Couscous, Bulgur, Quinoa, Hirse","ok","Unbedenklich.","pasta spaghetti"],
- ["Reiswaffeln","warn","Enthalten etwas Arsen. In Maßen.","reiscracker"],
- ["Haferflocken, Müsli","ok","Unbedenklich, gute Ballaststoffquelle.","porridge haferbrei"],
- ["Leinsamen, Chiasamen","ok","Unbedenklich, immer mit viel Wasser. Leinsamen höchstens 1–2 EL pro Mahlzeit.","chia"],
- ["Bittere Aprikosenkerne","no","Enthalten Blausäure.",""],
- ["Nüsse","ok","Nur wenn keine Allergie besteht. Gute Quelle für Magnesium.","haselnüsse cashews pistazien paranüsse macadamia walnüsse mandeln"],
- ["Erdnüsse, Erdnussbutter","ok","Nur wenn keine Allergie besteht.","erdnussmus"],
- ["Kürbiskerne, Sonnenblumenkerne, Sesam","ok","Gute Alternative bei Nussallergie, viel Magnesium und Eisen.","tahin sesammus"],
- ["Tofu, Tempeh","ok","Gegart unbedenklich, gute Eiweißquelle.","seitan"],
- ["Hummus","ok","Gekühlt und rasch verbrauchen.",""],
- ["Falafel","ok","Frisch frittiert unbedenklich.",""],
-
- /* ---------- Süßes & Snacks ---------- */
- ["Schokolade","ok","In Maßen. Zartbitter enthält etwas Koffein.","zartbitter vollmilchschokolade"],
- ["Gummibärchen, Fruchtgummi","ok","In Maßen.",""],
- ["Lakritz","warn","Süßholz kann den Blutdruck erhöhen. Nur kleine Mengen.","salmiak"],
- ["Kuchen, Kekse, Gebäck","ok","Durchgebacken unbedenklich.","torte muffin brownies"],
- ["Sahnetorte, Cremetorte","ok","Gekühlt und frisch unbedenklich. Creme ohne rohes Ei.",""],
- ["Käsekuchen","ok","Durchgebacken unbedenklich.","cheesecake"],
- ["Rumkugeln, Schnapspralinen, Weinbrandbohnen","no","Enthalten Alkohol.","pralinen mit alkohol"],
- ["Marzipan, Nougat","ok","Nur wenn keine Nussallergie besteht (Mandeln, Haselnüsse).",""],
- ["Nuss-Nougat-Creme","ok","In Maßen. Enthält Haselnüsse.","nutella"],
- ["Chips, Salzstangen, Popcorn","ok","In Maßen.","flips cracker"],
- ["Eis aus der Tiefkühltruhe (abgepackt)","ok","Unbedenklich.","eis am stiel speiseeis"],
- ["Softeis aus der Maschine","no","Listerien in der Maschine möglich.","soft eis"],
- ["Eis aus der Eisdiele","warn","Meist unbedenklich, wenn gut gekühlt. Softeis meiden.","gelato"],
- ["Honig","ok","Für Schwangere unbedenklich (nicht für Babys unter 1 Jahr).",""],
- ["Zucker, Sirup, Agavendicksaft","ok","In Maßen.","ahornsirup"],
- ["Süßstoff, Stevia","ok","In üblichen Mengen unbedenklich.","aspartam sucralose"],
-
- /* ---------- Getränke ---------- */
- ["Wasser, Mineralwasser, Leitungswasser","ok","Am besten. Etwa 1,5 Liter am Tag. In sehr alten Häusern auf Bleirohre achten.","sprudel"],
- ["Kaffee","warn","Bis 200 mg Koffein am Tag, das sind etwa 2 Tassen Filterkaffee.","filterkaffee"],
- ["Espresso, Cappuccino, Latte macchiato","warn","Zählt zu den 200 mg Koffein am Tag. Ein Espresso hat etwa 60–80 mg.","milchkaffee flat white"],
- ["Entkoffeinierter Kaffee","ok","Unbedenklich.","koffeinfrei"],
- ["Schwarzer Tee, grüner Tee, Matcha, Mate","warn","Enthält Koffein, zählt zu den 200 mg dazu. Nicht direkt zum Essen (Eisenaufnahme).","earl grey chai"],
- ["Eistee","warn","Koffein und viel Zucker.",""],
- ["Cola","warn","Koffein und viel Zucker. Nur selten.","cola zero"],
- ["Energy-Drinks","no","Viel Koffein und weitere Zusätze.","red bull monster"],
- ["Kräutertee (Fenchel, Kamille, Pfefferminze, Rooibos)","ok","In normalen Mengen unbedenklich. Sorten abwechseln.","fencheltee kamillentee pfefferminztee"],
- ["Früchtetee","ok","Unbedenklich.",""],
- ["Ingwertee","ok","Kann gegen Übelkeit helfen.",""],
- ["Himbeerblättertee","warn","Erst ab etwa SSW 36 und nur nach Rücksprache mit der Hebamme.",""],
- ["Salbeitee","warn","Nur gelegentlich, nicht in großen Mengen.",""],
- ["Süßholztee","warn","Süßholz: nur selten.",""],
- ["Saft, pasteurisiert","ok","Unbedenklich, aber viel Zucker. Gern als Schorle.","apfelsaft orangensaft schorle"],
- ["Frisch gepresster Saft, selbst gemacht","ok","Frisch trinken.","smoothie selbst"],
- ["Unpasteurisierter Saft vom Hofladen","warn","Kann Keime enthalten. Pasteurisierten wählen.",""],
- ["Smoothie aus der Flasche","ok","Pasteurisiert, unbedenklich.",""],
- ["Tonic Water, Bitter Lemon","no","Enthält Chinin. Für Schwangere nicht empfohlen.","chinin"],
- ["Kombucha","warn","Enthält oft etwas Alkohol und ist meist nicht pasteurisiert.",""],
- ["Malzbier","ok","Alkoholfrei, aber viel Zucker.",""],
- ["Alkohol (Wein, Bier, Sekt, Schnaps, Cocktails)","no","Kein Alkohol in der Schwangerschaft, auch keine kleinen Mengen.","rotwein weißwein prosecco likör gin wodka rum whisky aperol hugo spritz mojito caipirinha sangria bowle radler glühwein eierpunsch"],
- ["Alkoholfreies Bier, alkoholfreier Wein","warn","Kann bis 0,5 % Alkohol enthalten. Sorten mit 0,0 % sind in Ordnung.","alkoholfrei"],
-
- /* ---------- Gewürze & Sonstiges ---------- */
- ["Jodsalz","ok","Jodsalz statt normalem Salz, aber sparsam.","salz"],
- ["Meersalz, Himalayasalz","ok","Unbedenklich, aber meist ohne Jod. Besser Jodsalz.",""],
- ["Zimt","ok","In normalen Mengen unbedenklich. Cassia-Zimt nicht in großen Mengen (Cumarin).",""],
- ["Muskat","ok","Als Gewürz unbedenklich, keine großen Mengen.",""],
- ["Safran","ok","Als Gewürz unbedenklich, keine großen Mengen.",""],
- ["Chili, Pfeffer, Curry, Kurkuma","ok","Unbedenklich. Scharfes kann Sodbrennen verstärken.","paprikapulver gewürze"],
- ["Vanille","ok","Unbedenklich.",""],
- ["Gelatine","ok","Unbedenklich.",""],
- ["Hefe, Backpulver","ok","Unbedenklich.",""],
- ["Fertigsalate aus dem Kühlregal (Nudelsalat, Kartoffelsalat)","warn","Listerien möglich. Frisch selbst machen ist sicherer.","eiersalat thunfischsalat feinkostsalat"],
- ["Belegte Brötchen und Sandwiches zum Mitnehmen","warn","Je nach Belag. Kein roher Schinken, keine Salami, kein Räucherlachs.","sandwich tankstelle bäckerei"],
- ["Buffet, lange warmgehaltene Speisen","warn","Nur heiß Dampfendes oder frisch Zubereitetes nehmen.","hotelbuffet"],
- ["Pizza Margherita, Funghi, Tonno (heiß)","ok","Heiß aus dem Ofen unbedenklich. Tonno zählt zum Thunfisch der Woche.","pizza"],
- ["Pizza mit Parmaschinken","no","Der rohe Schinken kommt meist kalt nach dem Backen darauf.","pizza prosciutto crudo"],
- ["Ramen mit weichem Ei","warn","Suppe unbedenklich, das halbweiche Ei weglassen.","ramen"],
- ["Pho, Bibimbap","warn","Rohes Rindfleisch bzw. rohes Ei weglassen oder durchgaren lassen.",""],
- ["Pasta, Lasagne, Aufläufe","ok","Heiß unbedenklich.",""],
- ["Pommes, Kartoffelchips aus der Fritteuse","ok","Goldgelb statt dunkel (weniger Acrylamid).","pommes frites"],
+   Grundlage: BfR „Sicher verpflegt“, Netzwerk Gesund ins Leben, DGE.
+   ============================================================ */
+const FOOD_GROUPS = [
+ ["obst","Obst","Gründlich waschen, auch wenn man schält. Vorgeschnittenes Obst von der Theke meiden."],
+ ["gemuese","Gemüse & Pilze","Gründlich waschen und Erdreste entfernen (Toxoplasmose). Roh oder gegart unbedenklich."],
+ ["kraeuter","Kräuter, Gewürze & Soßen","In üblichen Küchenmengen unbedenklich."],
+ ["getreide","Brot, Getreide & Nudeln","Unbedenklich. Vollkorn liefert mehr Ballaststoffe, Eisen und Magnesium."],
+ ["huelsen","Hülsenfrüchte, Nüsse & Samen","Hülsenfrüchte immer gut durchgaren. Nüsse nur, wenn keine Allergie besteht."],
+ ["milch","Milch & Milchprodukte","Nur aus pasteurisierter Milch. Gekühlt lagern und rasch verbrauchen."],
+ ["kaese","Käse","Hartkäse ist unbedenklich. Weich- und Schnittkäse nur aus pasteurisierter Milch, Rinde entfernen."],
+ ["eier","Eier & Eierspeisen","Nur durchgegart essen, das Eigelb muss fest sein (Salmonellen)."],
+ ["fleisch","Fleisch & Geflügel","Ganz durchgaren, innen nicht mehr rosa (Toxoplasmose). Brett und Messer danach heiß abwaschen."],
+ ["wurst","Wurst & Schinken","Gegarte Wurst frisch kaufen, kühl lagern und rasch verbrauchen. Rohwurst und rohen Schinken meiden."],
+ ["fisch","Fisch & Meeresfrüchte","Nur vollständig durchgegart essen. Roh, kalt geräuchert oder gebeizt meiden."],
+ ["suess","Süßes & Snacks","In Maßen unbedenklich."],
+ ["getraenke","Getränke","In üblichen Mengen unbedenklich."],
+ ["auswaerts","Fertiggerichte & Auswärts","Heiß und frisch zubereitet ist am sichersten. Lange Stehendes meiden."],
 ];
+const L_LIST = "Listerien-Gefahr.";
+const FOOD_DATA = {
+ obst:[
+  ["Obst (allgemein)","ok","","","Vitamin C,Ballaststoffe","früchte obst"],
+  ["Apfel","ok","","","Ballaststoffe","äpfel"],
+  ["Aprikose","ok","","","Ballaststoffe","marille"],
+  ["Ananas","ok","","Dass Ananas Wehen auslöst, ist nicht belegt.","Vitamin C",""],
+  ["Avocado","ok","","Liefert gesunde Fette.","Folsäure,Ballaststoffe,Magnesium",""],
+  ["Banane","ok","","Gut bei Wadenkrämpfen.","Magnesium,Ballaststoffe","bananen"],
+  ["Birne","ok","","","Ballaststoffe","birnen"],
+  ["Brombeeren","ok","","","Vitamin C,Ballaststoffe",""],
+  ["Clementine, Mandarine","ok","","","Vitamin C","clementinen mandarinen satsuma"],
+  ["Cranberrys, getrocknet","ok","","Meist mit Zucker gesüßt.","Ballaststoffe","cranberries"],
+  ["Datteln","ok","","Gut gegen Heißhunger auf Süßes.","Ballaststoffe,Magnesium","dattel"],
+  ["Drachenfrucht","ok","","","Vitamin C","pitahaya"],
+  ["Erdbeeren","ok","","","Vitamin C,Folsäure","erdbeere"],
+  ["Feigen","ok","","","Ballaststoffe,Calcium","feige"],
+  ["Granatapfel","ok","","","Vitamin C",""],
+  ["Grapefruit","ok","","Kann die Wirkung mancher Medikamente verändern. Bei Medikamenten nachfragen.","Vitamin C","pampelmuse"],
+  ["Guave","ok","","","Vitamin C",""],
+  ["Heidelbeeren","ok","","","Vitamin C,Ballaststoffe","blaubeeren"],
+  ["Himbeeren","ok","","","Vitamin C,Ballaststoffe","himbeere"],
+  ["Holunderbeeren","warn","Nur gekocht essen, roh sind sie giftig (für alle).","","Vitamin C","holunder"],
+  ["Johannisbeeren","ok","","Schwarze Johannisbeeren haben besonders viel Vitamin C.","Vitamin C","ribisel"],
+  ["Kaki","ok","","","Ballaststoffe","sharon"],
+  ["Kirschen","ok","","","",""],
+  ["Kiwi","ok","","","Vitamin C",""],
+  ["Kokosnuss","ok","","Viel Fett, in Maßen.","Ballaststoffe","kokos"],
+  ["Litschi","ok","","Nur reife Früchte essen.","Vitamin C","lychee"],
+  ["Limette, Zitrone","ok","","Zitronensaft zum Essen hilft bei der Eisenaufnahme.","Vitamin C","zitronen limetten"],
+  ["Mango","ok","","","Vitamin C",""],
+  ["Maracuja","ok","","","Vitamin C,Ballaststoffe","passionsfrucht"],
+  ["Melone, ganz gekauft","ok","Ganze Melone außen waschen, dann selbst aufschneiden.","","","wassermelone honigmelone netzmelone cantaloupe"],
+  ["Melone, vorgeschnitten","warn","Vorgeschnittene Melone kann Listerien enthalten. Lieber ganz kaufen.","","","melonenstücke"],
+  ["Nektarine, Pfirsich","ok","","","Vitamin C","pfirsiche nektarinen"],
+  ["Orange","ok","","","Vitamin C,Folsäure","orangen apfelsine"],
+  ["Papaya, reif","ok","","","Vitamin C,Folsäure",""],
+  ["Papaya, unreif (grün)","warn","Unreife Papaya enthält Milchsaft (Latex). Besser meiden.","","","grüner papayasalat som tam"],
+  ["Physalis","ok","","Nur reife, gelbe Früchte essen.","Vitamin C","kapstachelbeere"],
+  ["Pflaumen, Zwetschgen","ok","","Gut bei Verstopfung.","Ballaststoffe","zwetschen mirabellen"],
+  ["Quitte","ok","Nur gegart essen, roh ist sie ungenießbar.","","Ballaststoffe",""],
+  ["Rhabarber","ok","Gekocht essen, Blätter nicht verwenden.","","",""],
+  ["Sanddorn","ok","","","Vitamin C",""],
+  ["Stachelbeeren","ok","","","Vitamin C",""],
+  ["Weintrauben","ok","","","","trauben"],
+  ["Obst aus der Dose","ok","Unbedenklich. Möglichst ohne Zuckersirup.","","","pfirsiche dose ananas dose"],
+  ["Obstsalat von der Theke","warn","Lieber selbst frisch schneiden (Listerien).","","",""],
+  ["TK-Beeren","warn","Vor dem Essen 2 Minuten sprudelnd kochen (Noroviren, Hepatitis A).","","Vitamin C","tiefkühlbeeren gefrorene beeren tk himbeeren"],
+  ["Trockenpflaumen","ok","","Hilft bei Verstopfung, dazu viel trinken.","Ballaststoffe,Eisen","backpflaumen"],
+  ["Aprikosen, getrocknet","ok","","","Ballaststoffe,Eisen","trockenaprikosen"],
+  ["Rosinen","ok","","","Ballaststoffe","sultaninen"],
+  ["Acerola","ok","","","Vitamin C",""],
+ ],
+ gemuese:[
+  ["Gemüse (allgemein)","ok","","Roh oder gegart. TK-Gemüse nur gegart.","Folsäure,Ballaststoffe,Vitamin C","rohkost gemüse"],
+  ["Artischocke","ok","Gegart essen.","","Folsäure,Ballaststoffe",""],
+  ["Aubergine","ok","Am besten gegart essen.","","Ballaststoffe",""],
+  ["Blumenkohl","ok","","","Vitamin C,Folsäure",""],
+  ["Grüne Bohnen","warn","Nur gut gekocht essen, roh sind sie giftig (für alle).","","Folsäure,Ballaststoffe","brechbohnen stangenbohnen buschbohnen"],
+  ["Brokkoli","ok","","","Folsäure,Vitamin C,Calcium","broccoli"],
+  ["Chicorée","ok","","","Folsäure",""],
+  ["Chinakohl, Pak Choi","ok","","","Folsäure,Vitamin C,Calcium","pak choi"],
+  ["Erbsen","ok","TK-Erbsen nur gegart essen.","","Folsäure,Protein,Ballaststoffe","zuckerschoten"],
+  ["Feldsalat","ok","","","Folsäure,Eisen","rapunzel"],
+  ["Fenchel","ok","","","Vitamin C,Folsäure",""],
+  ["Grünkohl","ok","","","Calcium,Vitamin C,Folsäure",""],
+  ["Gurke","ok","","","","salatgurke"],
+  ["Kartoffeln","ok","Grüne Stellen und Keime großzügig wegschneiden.","","Magnesium,Vitamin C","kartoffel"],
+  ["Kohlrabi","ok","","","Vitamin C",""],
+  ["Kürbis","ok","Gegart essen. Bitter schmeckenden Kürbis wegwerfen.","","Ballaststoffe","hokkaido butternut"],
+  ["Lauch, Porree","ok","Zwischen den Blättern gründlich waschen.","","Folsäure","porree"],
+  ["Mais","ok","Maiskolben gegart essen. TK-Mais nicht roh.","","Ballaststoffe","maiskolben zuckermais"],
+  ["Mangold","ok","","","Folsäure,Magnesium",""],
+  ["Möhren, Karotten","ok","","","Ballaststoffe","möhre karotte rüebli"],
+  ["Okra","ok","Gegart essen.","","Folsäure",""],
+  ["Paprika","ok","","Sehr viel Vitamin C, gut zu eisenreichem Essen.","Vitamin C,Folsäure","paprikaschote"],
+  ["Pastinake","ok","","","Ballaststoffe,Folsäure",""],
+  ["Radieschen, Rettich","ok","","","Vitamin C",""],
+  ["Rote Bete","ok","","","Folsäure",""],
+  ["Rosenkohl","ok","","","Folsäure,Vitamin C",""],
+  ["Rotkohl, Weißkohl, Wirsing","ok","","","Vitamin C,Folsäure","blaukraut rotkraut weißkraut"],
+  ["Rucola","ok","Gründlich waschen. Lose kaufen statt fertig aus der Tüte.","","Folsäure,Calcium","rauke"],
+  ["Salat (Kopf, Eisberg, Römer)","ok","Selbst gründlich waschen.","","Folsäure","kopfsalat eisbergsalat römersalat lollo"],
+  ["Abgepackter Salat aus der Tüte","warn","Kann Listerien enthalten. Besser frischen Salat selbst waschen.","","","tütensalat salatmischung"],
+  ["Schwarzwurzel","ok","","","Ballaststoffe",""],
+  ["Sellerie","ok","","Häufiges Allergen.","Ballaststoffe","staudensellerie knollensellerie"],
+  ["Spargel","ok","","","Folsäure",""],
+  ["Spinat","ok","","Spinat-Reste rasch abkühlen und nur einmal aufwärmen.","Folsäure,Eisen,Magnesium","blattspinat babyspinat"],
+  ["Süßkartoffel","ok","","","Ballaststoffe",""],
+  ["Tomate","ok","","","Vitamin C","tomaten cherrytomaten"],
+  ["Topinambur","ok","","","Ballaststoffe",""],
+  ["Zucchini","ok","Bitter schmeckende Zucchini wegwerfen (Bitterstoffe).","","Folsäure",""],
+  ["Zwiebel, Frühlingszwiebel","ok","","","","zwiebeln lauchzwiebel"],
+  ["Edamame","ok","Nur gekocht essen, Schoten nicht mitessen.","","Protein,Folsäure,Magnesium","sojabohnen grün"],
+  ["Bambussprossen","ok","Aus Glas oder Dose sind sie gegart. Frische nur gekocht.","","",""],
+  ["Maniok","warn","Nur gründlich gekocht essen, roh giftig (für alle).","","","cassava yuca"],
+  ["Sprossen, Keimlinge","no","Roh können sie Bakterien enthalten. Nur durchgegart essen.","","","sojasprossen alfalfa mungbohnensprossen"],
+  ["Kresse","warn","Gründlich waschen. Wie Sprossen anfällig für Keime.","","Folsäure","gartenkresse"],
+  ["Sauerkraut","ok","Aus Glas oder Beutel unbedenklich.","Gut gegen Lust auf Saures.","Vitamin C",""],
+  ["Gewürzgurken, Oliven, Kapern","ok","","Gut gegen Lust auf Saures.","","essiggurken"],
+  ["Algen, Nori, Wakame","warn","Teils extrem viel Jod. Nur kleine Mengen, z. B. ein Nori-Blatt.","","Jod","seetang kombu algensalat"],
+  ["TK-Gemüse","warn","Nur gegart essen, nicht roh in Salat oder Smoothie (Listerien).","","","tiefkühlgemüse"],
+  ["Gemüse aus der Dose oder dem Glas","ok","","","","dosengemüse"],
+  ["Champignons","ok","Gut durchgaren.","","Folsäure","pilze"],
+  ["Austernpilze, Kräuterseitlinge","ok","Gut durchgaren.","","",""],
+  ["Pfifferlinge","ok","Gut durchgaren.","","","eierschwammerl"],
+  ["Shiitake","ok","Gut durchgaren. Roh oder halbgar kann er Hautausschlag auslösen.","","",""],
+  ["Steinpilze (gekauft, auch getrocknet)","ok","Gut durchgaren. Getrocknete vorher einweichen.","","","steinpilz porcini"],
+  ["Wildpilze, selbst gesammelt","warn","Verwechslungsgefahr und Schadstoffe. Nur selten und sicher bestimmt.","","","pilze sammeln maronenröhrling"],
+ ],
+ kraeuter:[
+  ["Basilikum","ok","Frische Kräuter gründlich waschen (Erde, Toxoplasmose).","","","basilikum"],
+  ["Petersilie","ok","Frische Kräuter gründlich waschen (Erde, Toxoplasmose).","Als Würze unbedenklich, keine großen Mengen als Saft oder Tee.","Vitamin C,Folsäure",""],
+  ["Schnittlauch, Dill, Koriander","ok","Frische Kräuter gründlich waschen (Erde, Toxoplasmose).","","",""],
+  ["Minze","ok","Frische Kräuter gründlich waschen (Erde, Toxoplasmose).","","","pfefferminze"],
+  ["Oregano, Thymian, Rosmarin","ok","Frische Kräuter gründlich waschen (Erde, Toxoplasmose).","","",""],
+  ["Salbei","ok","Als Gewürz unbedenklich. Salbeitee nur gelegentlich.","","",""],
+  ["Ingwer","ok","","Kann gegen Übelkeit helfen. Keine hoch dosierten Kapseln ohne Rücksprache.","",""],
+  ["Knoblauch","ok","","","",""],
+  ["Zimt","ok","In normalen Mengen unbedenklich. Cassia-Zimt nicht in großen Mengen (Cumarin).","","","ceylon zimt"],
+  ["Muskat","ok","Als Gewürz unbedenklich, keine großen Mengen.","","","muskatnuss"],
+  ["Safran","ok","Als Gewürz unbedenklich, keine großen Mengen.","","",""],
+  ["Kurkuma","ok","Als Gewürz unbedenklich. Keine hoch dosierten Kapseln.","","","curcuma"],
+  ["Chili, Pfeffer, Paprikapulver","ok","","Scharfes kann Sodbrennen verstärken.","","cayenne"],
+  ["Curry, Kreuzkümmel, Kardamom","ok","","","","kumin garam masala"],
+  ["Vanille","ok","","","",""],
+  ["Anis, Fenchelsamen, Kümmel","ok","","","",""],
+  ["Lorbeer, Nelken, Wacholder","ok","","","",""],
+  ["Jodsalz","ok","Jodsalz statt normalem Salz verwenden, aber sparsam.","","Jod","salz"],
+  ["Meersalz, Himalayasalz","ok","","Meist ohne Jod. Besser Jodsalz nehmen.","","fleur de sel"],
+  ["Senf","ok","","","",""],
+  ["Ketchup, Grillsoßen","ok","","Viel Zucker.","","bbq"],
+  ["Sojasauce","ok","","Viel Salz.","","shoyu"],
+  ["Fischsauce, Worcestersauce","ok","","","",""],
+  ["Essig, Balsamico","ok","","Bei Sodbrennen sparsam.","","apfelessig"],
+  ["Brühe, Brühwürfel","ok","","","","gemüsebrühe"],
+  ["Hefeflocken","ok","","","Folsäure,Protein",""],
+  ["Gelatine, Agar-Agar","ok","","","",""],
+  ["Backpulver, Hefe","ok","","","","natron"],
+  ["Pesto aus dem Glas","ok","","","","pesto"],
+  ["Mayonnaise, Remoulade aus dem Glas","ok","Industriell mit pasteurisiertem Ei hergestellt.","","","mayo salatcreme"],
+  ["Tzatziki","ok","Aus pasteurisiertem Joghurt, gekühlt und frisch.","","Calcium",""],
+  ["Hollandaise, Béarnaise","warn","Selbst gemacht oft nicht heiß genug. Fertigprodukte sind unbedenklich.","","","sauce hollandaise"],
+  ["Aioli, selbst gemachte Mayonnaise","no","Mit rohem Ei: Salmonellen.","","","knoblauchmayo aioli"],
+  ["Caesar-Dressing, selbst gemacht","no","Meist mit rohem Ei.","","","caesar salad dressing"],
+ ],
+ getreide:[
+  ["Brot, Brötchen","ok","","","Ballaststoffe","semmel baguette ciabatta"],
+  ["Vollkornbrot","ok","","","Ballaststoffe,Eisen,Magnesium","schwarzbrot pumpernickel"],
+  ["Toastbrot","ok","","Bei Übelkeit oft gut verträglich.","","toast"],
+  ["Brezel, Laugengebäck","ok","","Salzig, kann bei Übelkeit helfen.","","laugenbrezel laugenstange"],
+  ["Croissant","ok","","","",""],
+  ["Knäckebrot, Zwieback","ok","","Trocken und mild, gut gegen Morgenübelkeit.","Ballaststoffe",""],
+  ["Haferflocken","ok","","","Ballaststoffe,Eisen,Magnesium","porridge haferbrei"],
+  ["Müsli, Granola","ok","","Auf Zucker und Nüsse (Allergie) achten.","Ballaststoffe","knuspermüsli"],
+  ["Cornflakes","ok","","","",""],
+  ["Reis","ok","","Reis enthält etwas Arsen, deshalb mit anderen Beilagen abwechseln.","","basmati jasmin naturreis risotto"],
+  ["Reiswaffeln","warn","Enthalten etwas Arsen. In Maßen.","","","reiscracker"],
+  ["Nudeln","ok","","","Ballaststoffe","pasta spaghetti penne"],
+  ["Couscous, Bulgur","ok","","","Ballaststoffe",""],
+  ["Quinoa","ok","","","Eisen,Magnesium,Protein",""],
+  ["Hirse","ok","","","Eisen,Magnesium",""],
+  ["Buchweizen, Amaranth","ok","","","Eisen,Magnesium",""],
+  ["Grieß, Polenta","ok","","","","weichweizengrieß maisgrieß"],
+  ["Wraps, Tortillas","ok","","","",""],
+  ["Gnocchi, Spätzle","ok","","","",""],
+  ["Roher Teig, rohes Mehl","no","Rohes Mehl kann E. coli enthalten, Teig oft rohes Ei. Nicht naschen.","","","keksteig kuchenteig cookie dough"],
+ ],
+ huelsen:[
+  ["Linsen","ok","","Mit Vitamin C (Paprika, Zitrone) wird das Eisen besser aufgenommen.","Eisen,Folsäure,Protein,Ballaststoffe","rote linsen tellerlinsen belugalinsen"],
+  ["Kichererbsen","ok","","","Eisen,Folsäure,Protein,Ballaststoffe",""],
+  ["Bohnen (Kidney, weiße, schwarze)","ok","Getrocknete Bohnen gut kochen. Aus der Dose sind sie gegart.","","Eisen,Folsäure,Protein,Ballaststoffe","kidneybohnen weiße bohnen"],
+  ["Erbsen, getrocknet","ok","","","Eisen,Protein,Ballaststoffe","schälerbsen"],
+  ["Tofu, Tempeh","ok","","","Protein,Calcium,Eisen","seitan"],
+  ["Sojamilch, Hafermilch, Reismilch","ok","","Möglichst mit Calcium angereichert. Reisdrinks nicht als einzige Milch (Arsen).","Calcium","pflanzenmilch sojadrink haferdrink"],
+  ["Hummus","ok","Gekühlt lagern und rasch verbrauchen.","","Eisen,Folsäure,Protein",""],
+  ["Falafel","ok","Frisch und heiß essen.","","Eisen,Folsäure",""],
+  ["Nüsse (allgemein)","ok","Nur wenn keine Allergie besteht.","Eine kleine Handvoll am Tag ist ein guter Snack.","Magnesium,Protein","nuss nussmischung studentenfutter"],
+  ["Erdnüsse, Erdnussbutter","ok","Nur wenn keine Allergie besteht.","","Magnesium,Protein","erdnussmus"],
+  ["Walnüsse","ok","Nur wenn keine Allergie besteht.","","Omega-3,Magnesium","walnuss"],
+  ["Haselnüsse","ok","Nur wenn keine Allergie besteht.","","Magnesium","haselnuss"],
+  ["Mandeln","ok","Nur wenn keine Allergie besteht.","","Calcium,Magnesium","mandel mandelmilch"],
+  ["Cashews, Pistazien, Macadamia","ok","Nur wenn keine Allergie besteht.","","Magnesium,Eisen","cashewkerne"],
+  ["Paranüsse","warn","Sehr viel Selen. Höchstens 1 bis 2 Stück am Tag.","","Magnesium","paranuss"],
+  ["Kürbiskerne, Sonnenblumenkerne","ok","","Gute Alternative bei Nussallergie.","Eisen,Magnesium,Protein",""],
+  ["Sesam, Tahin","ok","","","Calcium,Eisen","sesammus"],
+  ["Leinsamen","ok","Höchstens 1 bis 2 EL pro Mahlzeit, immer mit viel Wasser.","Hilft bei Verstopfung.","Ballaststoffe,Omega-3","leinsaat"],
+  ["Chiasamen","ok","Immer mit viel Flüssigkeit.","","Ballaststoffe,Omega-3,Calcium","chia"],
+  ["Mohn","ok","In üblichen Backmengen unbedenklich.","","Calcium",""],
+  ["Bittere Aprikosenkerne","no","Enthalten Blausäure.","","",""],
+  ["Maronen, Esskastanien","ok","Nur gegart essen (geröstet oder gekocht). Nicht mit Rosskastanien verwechseln, die sind giftig.","","Ballaststoffe,Magnesium","maroni esskastanien kastanien"],
+  ["Kokosraspeln","ok","","","Ballaststoffe",""],
+ ],
+ milch:[
+  ["Milch (pasteurisiert, H-Milch, ESL)","ok","","","Calcium,Jod,Protein","vollmilch fettarme milch frischmilch laktosefreie milch"],
+  ["Rohmilch, Vorzugsmilch, Milch ab Hof","no","Kann Listerien und andere Keime enthalten. Nur abgekocht verwenden.","","","milchtankstelle hofmilch"],
+  ["Joghurt","ok","","","Calcium,Protein,Jod","naturjoghurt griechischer joghurt fruchtjoghurt"],
+  ["Skyr, Quark","ok","","Viel Eiweiß.","Protein,Calcium","magerquark speisequark"],
+  ["Kefir, Buttermilch, Dickmilch","ok","","","Calcium,Protein","sauermilch"],
+  ["Kefir aus Rohmilch","no",L_LIST,"","",""],
+  ["Sahne, Schmand, Crème fraîche","ok","","","","schlagsahne kochsahne saure sahne creme fraiche sauerrahm"],
+  ["Butter","ok","Markenbutter ist aus pasteurisiertem Rahm.","","",""],
+  ["Butter vom Hof, Rohmilchbutter","warn","Kann aus Rohmilch sein. Zum Kochen und Backen erhitzen.","","","landbutter"],
+  ["Pudding, Milchreis, Grießbrei","ok","","","Calcium",""],
+  ["Kondensmilch","ok","","","Calcium","dosenmilch"],
+  ["Ayran, Lassi","ok","Aus pasteurisiertem Joghurt unbedenklich.","","Calcium",""],
+  ["Milchshake aus dem Café","warn","Oft mit Softeis gemixt. Lieber selbst machen.","","","shake"],
+  ["Kakao, Trinkschokolade","ok","Enthält nur wenig Koffein.","","Calcium","heiße schokolade kakaopulver"],
+ ],
+ kaese:[
+  ["Parmesan, Grana Padano","ok","Lang gereifter Hartkäse, auch aus Rohmilch in Ordnung. Rinde nicht mitessen.","","Calcium,Protein","parmigiano reggiano hartkäse"],
+  ["Pecorino","ok","Lang gereift unbedenklich. Rinde entfernen.","","Calcium",""],
+  ["Emmentaler, Bergkäse, Gruyère, Comté, Appenzeller","ok","Hartkäse, auch aus Rohmilch in Ordnung. Rinde entfernen.","","Calcium,Protein","greyerzer allgäuer schweizer käse"],
+  ["Gouda, Edamer, Butterkäse, Tilsiter, Leerdammer","ok","Supermarkt-Schnittkäse ist pasteurisiert. Rinde entfernen.","","Calcium,Protein","schnittkäse maasdamer"],
+  ["Bauernkäse aus Rohmilch","no","Schnittkäse aus Rohmilch: Listerien.","","","boerenkaas rohmilchkäse"],
+  ["Cheddar","ok","Rinde entfernen.","","Calcium",""],
+  ["Manchego","warn","Nur aus pasteurisierter Milch oder lange gereift. Packung prüfen.","","Calcium",""],
+  ["Raclettekäse","ok","Geschmolzen und heiß unbedenklich.","","Calcium","raclette"],
+  ["Mozzarella","ok","Auf „aus pasteurisierter Milch“ achten.","","Calcium,Protein","büffelmozzarella mozzarella di bufala"],
+  ["Burrata, Stracciatella","warn","Nur aus pasteurisierter Milch und ganz frisch.","","Calcium",""],
+  ["Ricotta, Mascarpone","ok","Aus pasteurisierter Milch, gekühlt und rasch verbrauchen.","","Calcium",""],
+  ["Frischkäse, Hüttenkäse","ok","","","Calcium,Protein","philadelphia körniger frischkäse cottage cheese"],
+  ["Feta, Schafskäse","warn","Nur aus pasteurisierter Milch. Packung prüfen.","","Calcium","hirtenkäse weißkäse"],
+  ["Halloumi","ok","Wird gegrillt oder gebraten gegessen.","","Calcium,Protein","grillkäse"],
+  ["Schmelzkäse, Scheiblettenkäse","ok","Durch die Herstellung erhitzt.","","Calcium","streichkäse burgerkäse babybel"],
+  ["Brie, Camembert (pasteurisiert)","warn","Rinde entfernen oder im Ofen überbacken.","","Calcium","weichkäse"],
+  ["Brie, Camembert aus Rohmilch","no",L_LIST,"","","camembert de normandie brie de meaux"],
+  ["Ofen-Camembert, gebackener Brie","ok","Durch und durch heiß erhitzt unbedenklich.","","Calcium","backcamembert"],
+  ["Ziegenkäse (weich, Rolle)","warn","Nur pasteurisiert. Rinde entfernen oder überbacken.","","Calcium","ziegenfrischkäse chevre"],
+  ["Gorgonzola, Blauschimmelkäse","warn","Kalt meiden. Erhitzt, z. B. in heißer Soße, unbedenklich.","","Calcium","bergader cambozola stilton"],
+  ["Roquefort","no","Blauschimmelkäse aus Rohmilch: Listerien.","","",""],
+  ["Harzer, Handkäse, Quargel","no","Sauermilchkäse: hohe Listerien-Gefahr.","","","handkäs mainzer"],
+  ["Limburger, Romadur, Münster, Taleggio","no","Käse mit Rotschmiere: Listerien auf der Rinde.","","","rotschmierkäse epoisses"],
+  ["Geriebener Käse aus der Tüte","warn","Am besten erhitzt essen, z. B. überbacken.","","Calcium","reibekäse pizzakäse"],
+  ["Käse von der Theke","warn","Frisch aufgeschnitten kaufen, kühl lagern, rasch essen.","","","käsetheke"],
+  ["Käsefondue","warn","Käse ist erhitzt, aber meist mit Weißwein und Kirschwasser. Ohne Alkohol zubereiten.","","Calcium","fondue"],
+ ],
+ eier:[
+  ["Ei, hart gekocht","ok","","","Protein,Jod,Vitamin D,Folsäure","gekochtes ei frühstücksei eier"],
+  ["Rührei, Omelett","ok","Ganz stocken lassen, nichts darf mehr feucht glänzen.","","Protein,Vitamin D",""],
+  ["Spiegelei, beidseitig gebraten","ok","Wenden, bis das Eigelb ganz fest ist.","","Protein,Vitamin D",""],
+  ["Flüssiges Eigelb (Spiegelei, Frühstücksei)","no","Salmonellen. Spiegelei wenden und durchbraten, Ei hart kochen.","","","sunny side up spiegelei flüssig"],
+  ["Weiches Ei, pochiertes Ei","no","Salmonellen.","","","wachsweich verlorenes ei eggs benedict onsen"],
+  ["Wachteleier, gekocht","ok","Hart gekocht unbedenklich.","","Protein",""],
+  ["Eiersalat","ok","Selbst gemacht mit hart gekochten Eiern und Mayonnaise aus dem Glas. Von der Theke meiden.","","Protein",""],
+  ["Tiramisu","no","Meist mit rohem Ei. Nur ohne rohes Ei zubereitet in Ordnung.","","",""],
+  ["Mousse au Chocolat, Zabaione","no","Meist mit rohem Ei: Salmonellen.","","",""],
+  ["Selbst gemachtes Eis mit Ei","no","Rohes Ei: Salmonellen.","","",""],
+  ["Spaghetti Carbonara","warn","Das Ei stockt oft nicht ganz. Nur wenn die Soße richtig heiß und gebunden ist.","","Protein",""],
+  ["Baiser, Meringue","ok","Durchgebacken unbedenklich.","","",""],
+  ["Pfannkuchen, Waffeln, Kaiserschmarrn","ok","Ganz durchbacken.","","","crepes eierkuchen pancakes"],
+  ["Eierlikör, Eierpunsch","no","Alkohol und rohes Ei.","","",""],
+ ],
+ fleisch:[
+  ["Rind, durchgegart","ok","","","Eisen,Protein","rindfleisch braten rouladen gulasch schmorbraten"],
+  ["Steak (medium, rare, rosa)","no","Toxoplasmose. Nur ganz durchgebraten (well done) essen.","","","blutig medium rare"],
+  ["Roastbeef, rosa","no","Nicht durchgegart: Toxoplasmose.","","",""],
+  ["Rinderhack, durchgebraten","ok","Innen grau, nicht mehr rosa.","","Eisen,Protein","hackfleisch gehacktes"],
+  ["Mett, Hackepeter, Tatar","no","Rohes Fleisch: Toxoplasmose, Listerien, Salmonellen.","","","mettbrötchen beefsteak tartar"],
+  ["Carpaccio","no","Rohes Fleisch: Toxoplasmose.","","",""],
+  ["Schwein, durchgegart","ok","Schweinefilet wird oft rosa serviert. Ganz durchgaren.","","Protein,Eisen","schweinefleisch schnitzel kotelett schweinebraten spanferkel"],
+  ["Lamm, durchgegart","ok","Lamm wird oft rosa serviert. Ganz durchgaren.","","Eisen,Protein","lammkeule lammkotelett"],
+  ["Lamm oder Kalb, rosa","no","Nicht durchgegart: Toxoplasmose.","","","lammkarree rosa"],
+  ["Kalb, durchgegart","ok","","","Protein,Eisen","kalbfleisch wiener schnitzel"],
+  ["Vitello tonnato","no","Kalbfleisch meist rosa, Soße oft mit rohem Ei.","","",""],
+  ["Hähnchen, Pute","ok","Vollständig durchgaren, auch am Knochen.","","Protein","huhn hühnchen chicken geflügel truthahn hähnchenbrust hähnchenkeule"],
+  ["Ente, Gans, durchgegart","ok","Ganz durchbraten. Entenbrust wird im Restaurant oft rosa serviert, dann um „durch“ bitten.","Die Haut ist sehr fett, bei Sodbrennen lieber ohne.","Eisen,Protein","gebratene ente entenkeule gänsebraten martinsgans"],
+  ["Entenbrust, rosa","no","Nicht durchgegart: Toxoplasmose.","","","magret"],
+  ["Kaninchen","ok","","","Protein",""],
+  ["Wild (Reh, Hirsch, Wildschwein)","warn","Ganz durchgaren. Wegen möglicher Bleireste aus der Munition nur selten.","","Eisen,Protein","wildbret rehrücken hirschgulasch hase"],
+  ["Leber","warn","Sehr viel Vitamin A. Im 1. Trimester meiden, danach höchstens selten.","","Eisen","rinderleber kalbsleber hühnerleber geflügelleber"],
+  ["Frikadellen, Hackbraten","ok","Ganz durchbraten.","","Eisen,Protein","bulette fleischpflanzerl"],
+  ["Döner, Gyros","warn","Fleisch muss gut durchgegart sein. Soße nur aus pasteurisiertem Joghurt, Salat frisch.","","Protein","dürüm kebab"],
+  ["Burger (Restaurant)","warn","Nach „durchgebraten“ fragen. Keine Soßen mit rohem Ei.","","Eisen,Protein","hamburger cheeseburger"],
+  ["Pulled Pork, Spareribs","ok","Lange gegart, unbedenklich.","","Protein","rippchen"],
+  ["Chicken Nuggets, Cordon bleu","ok","Gut durchbraten.","","Protein",""],
+  ["Gegrilltes Fleisch","ok","Ganz durchgrillen, verkohlte Stellen wegschneiden.","","Protein","grillen barbecue"],
+ ],
+ wurst:[
+  ["Bratwurst, Currywurst","ok","Gut durchgebraten unbedenklich.","","Protein","rostbratwurst thüringer nürnberger grillwurst"],
+  ["Wiener, Frankfurter, Bockwurst, Weißwurst","ok","Heiß gemacht essen.","","Protein","wiener würstchen knacker"],
+  ["Leberkäse (warm)","ok","Warm essen. Bayerischer Leberkäse enthält meist keine Leber.","","Protein","fleischkäse leberkäs"],
+  ["Fleischwurst, Lyoner, Mortadella, Bierschinken","warn","Kühl lagern, rasch verbrauchen. Am sichersten erhitzt.","","","brühwurst jagdwurst gelbwurst aufschnitt"],
+  ["Kochschinken, Putenbrust-Aufschnitt","ok","Möglichst frisch aufgeschnitten kaufen und rasch verbrauchen.","","Protein","gekochter schinken hinterschinken"],
+  ["Kassler","ok","Gegart unbedenklich.","","Protein","kasseler"],
+  ["Corned Beef (Dose)","ok","In der Dose erhitzt.","","Eisen,Protein",""],
+  ["Pastrami","warn","Am besten heiß essen, z. B. im warmen Sandwich.","","Protein",""],
+  ["Bacon, Frühstücksspeck","warn","Roh gepökelt. Nur knusprig durchgebraten essen.","","","bacon"],
+  ["Roher Speck, Schinkenspeck, Lardo","no","Roh gepökelt: Toxoplasmose, Listerien.","","","tiroler speck bauchspeck"],
+  ["Salami","no","Rohwurst: Toxoplasmen und Listerien möglich.","","","peperoni-salami"],
+  ["Cervelatwurst, Teewurst, Mettwurst","no","Rohwurst: Toxoplasmen und Listerien möglich.","","","streichmettwurst zervelat plockwurst"],
+  ["Landjäger, Kabanos, Pfefferbeißer","no","Rohwurst: Toxoplasmen und Listerien möglich.","","","cabanossi"],
+  ["Chorizo, Sucuk","warn","Meist Rohwurst. Nur durchgegart, z. B. im Eintopf oder gebraten.","","",""],
+  ["Parmaschinken, Serrano, Prosciutto","no","Roher Schinken: Toxoplasmose, Listerien.","","","rohschinken roher schinken iberico jamon"],
+  ["Schwarzwälder Schinken, Lachsschinken","no","Roher Schinken: Toxoplasmose, Listerien.","","","katenschinken knochenschinken"],
+  ["Bresaola, Bündnerfleisch, Coppa, Pancetta","no","Luftgetrocknetes Rohfleisch: Toxoplasmose, Listerien.","","","luftgetrocknet"],
+  ["Leberwurst","warn","Enthält Leber (Vitamin A). Nur selten und in kleinen Mengen.","","","kalbsleberwurst"],
+  ["Leberpastete, Pâté, Terrine","no","Listerien und viel Vitamin A.","","","pastete foie gras gänseleber"],
+  ["Blutwurst, Sülze","warn","Kühl lagern, rasch verbrauchen. Sülze kann Listerien enthalten.","","Eisen","presskopf schwartenmagen aspik"],
+  ["Fleischsalat, Wurstsalat","warn","Listerien möglich. Abgepackt kaufen, kühl lagern, schnell essen.","","",""],
+ ],
+ fisch:[
+  ["Lachs, durchgegart","ok","Innen nicht mehr glasig.","Fettreicher Fisch, 1× pro Woche ideal.","Omega-3,Vitamin D,Jod,Protein","lachsfilet ofenlachs"],
+  ["Räucherlachs, Graved Lachs","no","Kalt geräuchert oder gebeizt: Listerien.","","","gravlax stremel kalt"],
+  ["Stremellachs, heiß geräucherte Forelle, Makrele","warn","Heiß geräuchert. Nur nochmal durcherhitzt essen, z. B. in Soße oder Auflauf.","","Omega-3","räucherfisch räuchermakrele forellenfilet geräuchert bückling"],
+  ["Räucheraal, Aal","warn","Nur durcherhitzt. Aal enthält oft Schadstoffe, besser meiden.","","",""],
+  ["Kabeljau, Seelachs, Alaska-Seelachs","ok","Durchgaren, bis er sich in Lamellen löst.","Gut für Jod.","Jod,Protein","dorsch fischfilet"],
+  ["Scholle, Rotbarsch, Seehecht","ok","","","Jod,Protein",""],
+  ["Heilbutt","ok","","Größerer Raubfisch, deshalb nicht zu oft.","Omega-3,Protein,Jod",""],
+  ["Forelle, Zander, Dorade, Wolfsbarsch","ok","","","Protein,Omega-3","barsch saibling karpfen"],
+  ["Pangasius, Tilapia","ok","","","Protein",""],
+  ["Hering, Makrele, Sardinen, gebraten","ok","","Fettreicher Fisch mit viel Omega-3.","Omega-3,Vitamin D,Protein","brathering"],
+  ["Sardinen, Makrele aus der Dose","ok","In der Dose erhitzt.","","Omega-3,Vitamin D,Calcium","ölsardinen"],
+  ["Sardellen, Anchovis","warn","Gesalzen, nicht erhitzt. Auf heißer Pizza oder in Soße mitgegart in Ordnung.","","",""],
+  ["Matjes, Rollmops, Bismarckhering","no","Nicht erhitzt (nur gesalzen oder mariniert): Listerien, Parasiten.","","","fischbrötchen matjes"],
+  ["Fischbrötchen mit Backfisch","ok","Frisch gebraten unbedenklich.","","Protein","backfisch"],
+  ["Thunfisch aus der Dose","warn","Quecksilber: höchstens etwa 1 Portion pro Woche.","","Protein,Omega-3","thunfisch tunfisch thunfischsalat"],
+  ["Thunfischsteak","warn","Nur ganz durchgebraten (wird oft rosa serviert). Höchstens 1× pro Woche.","","Protein,Omega-3",""],
+  ["Tataki, rosa gebratener Thunfisch","no","Nicht durchgegart, dazu Quecksilber.","","",""],
+  ["Schwertfisch, Hai, Marlin","no","Hohe Quecksilberwerte.","","","schillerlocken haifisch"],
+  ["Hecht","warn","Raubfisch mit erhöhtem Quecksilber. Nur selten.","","",""],
+  ["Fischstäbchen","ok","Gut durchbraten.","","Jod,Protein",""],
+  ["Sushi mit rohem Fisch, Sashimi","no","Roher Fisch: Listerien, Parasiten.","","","maki nigiri lachsnigiri"],
+  ["Sushi vegetarisch oder mit gegartem Fisch","warn","Nur frisch zubereitet aus gutem Laden, nicht vom Vortag.","","","gurkenmaki avocadomaki california roll"],
+  ["Ceviche, Poke Bowl mit rohem Fisch","no","Roher Fisch: Listerien, Parasiten.","","","poké"],
+  ["Garnelen, Shrimps, gegart","ok","Nur vollständig gegart.","","Protein,Jod","scampi gambas"],
+  ["Nordseekrabben, Krabbencocktail","warn","Kalt gegessen sind Listerien möglich. Lieber erhitzt.","","Protein","krabbensalat"],
+  ["Muscheln, Tintenfisch, Oktopus, gegart","ok","Nur vollständig gegart. Geschlossene Muscheln wegwerfen.","","Protein,Eisen,Jod","miesmuscheln calamari pulpo"],
+  ["Hummer, Languste, gegart","ok","Nur vollständig gegart.","","Protein",""],
+  ["Austern, rohe Meeresfrüchte","no","Roh: Noroviren, Bakterien.","","",""],
+  ["Surimi","warn","Kalt gegessen sind Listerien möglich. Gegart unbedenklich.","","","krebsfleisch imitat"],
+  ["Kaviar, Fischrogen","no","Roh: Listerien.","","","lachskaviar forellenkaviar"],
+ ],
+ suess:[
+  ["Schokolade","ok","In Maßen. Zartbitter enthält etwas Koffein.","","Magnesium,Eisen","zartbitter vollmilchschokolade"],
+  ["Nuss-Nougat-Creme","ok","In Maßen. Enthält Haselnüsse.","","","nutella"],
+  ["Gummibärchen, Fruchtgummi, Bonbons","ok","","","",""],
+  ["Lakritz","warn","Süßholz kann den Blutdruck erhöhen. Nur kleine Mengen.","","","salmiak"],
+  ["Marzipan, Nougat","ok","Nur wenn keine Nussallergie besteht (Mandeln, Haselnüsse).","","",""],
+  ["Kekse, Kuchen, Gebäck","ok","Durchgebacken unbedenklich.","","","muffin brownies berliner donut"],
+  ["Sahnetorte, Cremetorte","ok","Gekühlt und frisch. Creme ohne rohes Ei.","","",""],
+  ["Käsekuchen","ok","Durchgebacken unbedenklich.","","Calcium","cheesecake"],
+  ["Lebkuchen, Spekulatius, Stollen","ok","","","","weihnachtsgebäck"],
+  ["Rumkugeln, Schnapspralinen, Weinbrandbohnen","no","Enthalten Alkohol.","","","pralinen mit alkohol"],
+  ["Eis aus der Tiefkühltruhe","ok","Abgepackt unbedenklich.","","","eis am stiel speiseeis eiscreme"],
+  ["Softeis, Frozen Yogurt aus der Maschine","no","In den Maschinen können sich Listerien halten.","","","soft eis froyo"],
+  ["Eis aus der Eisdiele","warn","Meist unbedenklich, wenn gut gekühlt. Softeis meiden.","","","gelato eiscafe"],
+  ["Honig","ok","Für Schwangere unbedenklich (nicht für Babys unter 1 Jahr).","","",""],
+  ["Zucker, Sirup, Agavendicksaft","ok","","","","ahornsirup"],
+  ["Süßstoff, Stevia, Xylit","ok","In üblichen Mengen unbedenklich.","","","aspartam sucralose zuckerfrei"],
+  ["Kaugummi","ok","Zuckerfreier in großen Mengen kann abführen.","","",""],
+  ["Chips, Salzstangen, Popcorn","ok","","","","flips cracker"],
+  ["Müsliriegel","ok","Auf Zucker und Nüsse achten.","","Ballaststoffe","energieriegel proteinriegel"],
+ ],
+ getraenke:[
+  ["Wasser, Mineralwasser, Leitungswasser","ok","Am besten. Etwa 1,5 Liter am Tag.","In sehr alten Häusern auf Bleirohre achten.","","sprudel"],
+  ["Kaffee","warn","Bis 200 mg Koffein am Tag, das sind etwa 2 Tassen Filterkaffee.","","","filterkaffee"],
+  ["Espresso, Cappuccino, Latte macchiato","warn","Zählt zu den 200 mg Koffein am Tag. Ein Espresso hat etwa 60 bis 80 mg.","","","milchkaffee flat white"],
+  ["Entkoffeinierter Kaffee","ok","","","","koffeinfrei"],
+  ["Schwarzer Tee, grüner Tee","warn","Enthält Koffein, zählt zu den 200 mg dazu. Nicht direkt zum Essen (bremst die Eisenaufnahme).","","","earl grey chai"],
+  ["Matcha, Mate","warn","Viel Koffein. Zählt zu den 200 mg am Tag.","","",""],
+  ["Eistee","warn","Koffein und viel Zucker.","","",""],
+  ["Cola","warn","Koffein und Zucker. Nur selten.","","","cola zero"],
+  ["Energy-Drinks","no","Viel Koffein und weitere Zusätze.","","","red bull monster"],
+  ["Fencheltee, Kamillentee, Pfefferminztee, Rooibos","ok","In normalen Mengen unbedenklich. Sorten abwechseln.","","","kräutertee"],
+  ["Früchtetee","ok","","","",""],
+  ["Ingwertee","ok","","Kann gegen Übelkeit helfen.","",""],
+  ["Himbeerblättertee","warn","Erst ab etwa SSW 36 und nur nach Rücksprache mit der Hebamme.","","",""],
+  ["Salbeitee, Süßholztee","warn","Nur gelegentlich, nicht in großen Mengen.","","",""],
+  ["Saft (pasteurisiert)","ok","","Viel Zucker, gern als Schorle.","Vitamin C","apfelsaft orangensaft schorle"],
+  ["Frisch gepresster Saft, selbst gemacht","ok","Frisch trinken.","","Vitamin C","smoothie selbst"],
+  ["Unpasteurisierter Saft vom Hofladen","warn","Kann Keime enthalten. Pasteurisierten wählen.","","",""],
+  ["Smoothie aus der Flasche","ok","Pasteurisiert, unbedenklich.","","Vitamin C",""],
+  ["Kokoswasser","ok","","","",""],
+  ["Tonic Water, Bitter Lemon","no","Enthält Chinin. Für Schwangere nicht empfohlen.","","","chinin"],
+  ["Kombucha","warn","Enthält oft etwas Alkohol und ist meist nicht pasteurisiert.","","",""],
+  ["Malzbier","ok","Alkoholfrei, aber viel Zucker.","","",""],
+  ["Limonade, Schorle","ok","In Maßen wegen Zucker.","","","fanta sprite"],
+  ["Alkoholfreies Bier, alkoholfreier Wein","warn","Kann bis 0,5 % Alkohol enthalten. Sorten mit 0,0 % sind in Ordnung.","","","alkoholfrei"],
+  ["Alkohol (Bier, Wein, Sekt, Schnaps)","no","Kein Alkohol in der Schwangerschaft, auch keine kleinen Mengen.","","","rotwein weißwein prosecco likör gin wodka rum whisky radler"],
+  ["Cocktails, Aperol, Hugo, Glühwein","no","Enthalten Alkohol. Alkoholfreie Varianten (Mocktails) sind in Ordnung.","","","aperol spritz hugo mojito caipirinha sangria bowle glühwein"],
+  ["Kinderpunsch, Mocktails","ok","Alkoholfrei unbedenklich.","","","alkoholfreier cocktail"],
+ ],
+ auswaerts:[
+  ["Pizza Margherita, Funghi, Gemüse","ok","Heiß aus dem Ofen unbedenklich.","","Calcium","pizza"],
+  ["Pizza Salami","warn","Die Salami wird heiß, ganz sicher ist das aber nicht. Besser ein anderer Belag.","","","pizza salami"],
+  ["Pizza mit Parmaschinken","no","Der rohe Schinken kommt meist kalt nach dem Backen darauf.","","","pizza prosciutto crudo"],
+  ["Pizza Tonno","ok","Heiß unbedenklich. Zählt zum Thunfisch der Woche.","","",""],
+  ["Pasta, Lasagne, Aufläufe","ok","Heiß unbedenklich.","","",""],
+  ["Pommes frites","ok","Goldgelb statt dunkel (weniger Acrylamid).","","","pommes"],
+  ["Ramen mit weichem Ei","warn","Suppe ist in Ordnung, das halbweiche Ei weglassen.","","","ramen"],
+  ["Pho, Bibimbap","warn","Rohes Rindfleisch bzw. rohes Ei weglassen oder durchgaren lassen.","","",""],
+  ["Curry, Dal (Restaurant)","ok","Heiß unbedenklich. Scharfes kann Sodbrennen verstärken.","","",""],
+  ["Caesar Salad","warn","Dressing oft mit rohem Ei, dazu Parmesan und Speck. Nachfragen.","","",""],
+  ["Salatbar, Salat im Restaurant","warn","Unklar, wie lange er steht. Lieber warme Gerichte.","","","salatbuffet"],
+  ["Buffet, warmgehaltene Speisen","warn","Nur heiß Dampfendes oder frisch Zubereitetes nehmen.","","","hotelbuffet"],
+  ["Belegte Brötchen und Sandwiches zum Mitnehmen","warn","Je nach Belag. Kein roher Schinken, keine Salami, kein Räucherlachs.","","","sandwich tankstelle bäckerei"],
+  ["Fertigsalate (Nudelsalat, Kartoffelsalat)","warn","Listerien möglich. Frisch selbst gemacht ist sicherer.","","","eiersalat theke feinkostsalat"],
+  ["Fertiggerichte aus dem Kühlregal","ok","Dampfend heiß erhitzen, nicht nur lauwarm.","","","mikrowelle fertiggericht"],
+  ["Tiefkühlpizza, TK-Fertiggerichte","ok","Nach Packung ganz durchbacken bzw. durcherhitzen.","","",""],
+  ["Dosensuppe, Eintopf aus der Dose","ok","Erhitzen.","","",""],
+ ],
+};
+
+// Flache Liste für Suche und Steckbrief: [Name, Stufe, Worauf achten, Suchbegriffe, Gruppe, Hinweis, Nährstoffe]
+const FOODS = [];
+FOOD_GROUPS.forEach(([g,,def]) => (FOOD_DATA[g]||[]).forEach(([n,st,ach,hint,nut,syn]) => FOODS.push([n, st, ach || def, syn||"", g, hint||"", nut ? nut.split(",") : []])));
+const GROUP_NAME = Object.fromEntries(FOOD_GROUPS.map(([g,n])=>[g,n]));
 
 /* Regeln für Suchbegriffe, die nicht in der Liste stehen.
    mod: true = gilt auch, wenn es einen Treffer in der Liste gibt (z. B. „roher Lachs“). */
@@ -1571,7 +1778,7 @@ const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
-const APP_VERSION = "9 · 06.11.2026";
+const APP_VERSION = "10 · 06.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -1846,32 +2053,85 @@ function searchFoods(raw){
 }
 const VERDICT = {ok:"Unbedenklich", warn:"Mit Vorsicht", no:"Meiden"};
 const STRICT = {ok:0, warn:1, no:2}; // bei gleichem Treffer zuerst die vorsichtigere Antwort
-function bigCard(s, verdict, title, why, note){
-  return `<section class="answer a-${s}" aria-live="polite"><span class="verdict">${esc(verdict)}</span>${title?`<b>${esc(title)}</b>`:""}<span>${esc(why)}</span>${note?`<small>${esc(note)}</small>`:""}</section>`;
+function bigCard(s, verdict, title, why, note, idx){
+  const more = idx!=null && idx>=0 ? `<button class="btn ghost small more" data-food="${idx}">Mehr erfahren ›</button>` : "";
+  return `<section class="answer a-${s}" aria-live="polite"><span class="verdict">${esc(verdict)}</span>${title?`<b>${esc(title)}</b>`:""}<span>${esc(why)}</span>${note?`<small>${esc(note)}</small>`:""}${more}</section>`;
 }
-function smallRow(f){ return `<div class="frow"><div>${esc(f[0])}<span class="why">${esc(f[2])}</span></div><span class="pill p-${f[1]}">${VERDICT[f[1]]}</span></div>`; }
+const fidx = f => FOODS.indexOf(f);
+function smallRow(f){ return `<button class="frow" data-food="${fidx(f)}"><div>${esc(f[0])}<span class="why">${esc(firstSentence(f[2]))}</span></div><span class="pill p-${f[1]}">${VERDICT[f[1]]}</span></button>`; }
+const firstSentence = t => { const m = String(t).match(/^.*?[.!?](\s|$)/); return m ? m[0].trim() : t; };
 function foodResults(){
   const R = searchFoods(ui.q);
-  if(!R) return `<p style="margin:0">Tippe ein Lebensmittel, ein Gericht oder ein Getränk ein. Rund ${FOODS.length} Einträge sind hinterlegt. Steht etwas nicht drin, antwortet die App nach den allgemeinen Regeln.</p>
-    <div class="chips">${["Brie","Salami","Räucherlachs","Sushi","Kaffee","Tiramisu","Feta","Thunfisch","Softeis","Leberwurst"].map(x=>`<button class="chip" data-example="${esc(x)}">${esc(x)}</button>`).join("")}</div>`;
+  if(!R) return foodBrowse();
   let out = "";
   if(R.allergy) out += bigCard("no","Deine Allergie",`Eingetragen: ${R.allergy}`,"Meiden. Bei Fertigprodukten immer die Zutatenliste prüfen, auch auf „Kann Spuren enthalten“.");
   let rest = R.matches;
   if(R.mod){ out += bigCard(R.mod.s, VERDICT[R.mod.s], R.mod.title, R.mod.why, "Antwort nach Regel"); }
-  else if(rest.length && !R.allergy){ const f = rest[0]; out += bigCard(f[1], VERDICT[f[1]], f[0], f[2]); rest = rest.slice(1); }
+  else if(rest.length && !R.allergy){ const f = rest[0]; out += bigCard(f[1], VERDICT[f[1]], f[0], firstSentence(f[2]), "", fidx(f)); rest = rest.slice(1); }
   else if(R.allergy){ /* Allergie-Karte reicht als Antwort */ }
   else if(R.rule){ out += bigCard(R.rule.s, VERDICT[R.rule.s], ui.q.trim(), R.rule.why, `Nicht in der Liste. Antwort nach Regel „${R.rule.title}“`); }
   else out += bigCard("info","Keine Einschränkung bekannt", ui.q.trim(), "Nicht in der Liste und keine Regel trifft zu. Wie immer gilt: gründlich waschen, Fleisch, Fisch und Eier durchgaren, Käse aus pasteurisierter Milch.", "Im Zweifel Hebamme oder Ärztin fragen.");
   if(rest.length) out += `<h3 style="margin-top:4px">${R.mod?"Passende Einträge":"Ähnliche Einträge"}</h3><div class="rlist">${rest.slice(0,7).map(smallRow).join("")}</div>`;
   return out;
 }
+/* Ohne Suchbegriff: alle Lebensmittel nach Gruppe und A bis Z */
+function foodBrowse(){
+  const g = ui.fGroup || "alle";
+  const list = FOODS.filter(f => g==="alle" || f[4]===g).slice().sort((x,y)=>x[0].localeCompare(y[0],"de"));
+  const byLetter = {};
+  list.forEach(f => { let L = f[0][0].toUpperCase(); L = {"Ä":"A","Ö":"O","Ü":"U"}[L] || L; (byLetter[L] = byLetter[L] || []).push(f); });
+  const letters = Object.keys(byLetter).sort();
+  return `<p class="small muted" style="margin:0">${FOODS.length} Lebensmittel zum Stöbern. Antippen zeigt den Steckbrief.</p>
+    <div class="chips groups"><button class="chip" data-fgroup="alle" aria-pressed="${g==="alle"}">Alle</button>${FOOD_GROUPS.map(([k,n])=>`<button class="chip" data-fgroup="${k}" aria-pressed="${g===k}">${esc(n)}</button>`).join("")}</div>
+    <nav class="abc" aria-label="Buchstaben">${letters.map(L=>`<button data-letter="${L}">${L}</button>`).join("")}</nav>
+    ${letters.map(L=>`<h3 class="letter" id="L-${L}">${L}</h3><div class="rlist">${byLetter[L].map(smallRow).join("")}</div>`).join("")}`;
+}
+/* Rezepte, in denen das Lebensmittel vorkommt */
+const STOP = new Set(["durchgegart","gekocht","gebraten","frisch","selbst","gemacht","pasteurisiert","ganz","gekauft","beidseitig","restaurant","theke","dose","glas","aus","der","dem","vom","mit","und","oder","warm","heiss","hart","roh","rosa","unreif","reif","getrocknet","gegart","weich","rolle","grun","kopf","eisberg","romer","kidney","weisse","schwarze"]);
+function foodTerms(f){
+  const t = norm(f[0]).replace(/[(),/.\-]/g," ").split(/\s+/).filter(w=>w.length>=4 && !STOP.has(w));
+  if(f[4]==="eier") t.push("eier");
+  return [...new Set(t)];
+}
+// Kommt das Lebensmittel als Zutat vor? „Kürbis“ soll nicht „Kürbiskerne“ finden, „Ente“ nicht „Kartoffelente“ o. Ä.
+const NOT_AFTER = /^s?(kern|sam|saft|mus|flock|mehl|brot|blatt|tee|essig|pulver|mark)/;
+const NOT_BEFORE = /(suss)$/;
+function ingHas(ingName, term){
+  const n = norm(ingName); let i = n.indexOf(term);
+  while(i >= 0){
+    const pre = n.slice(0,i);
+    const endOfWord = !/[a-z]/.test(n[i+term.length] || " ") || /^(n|e|en|s)?([^a-z]|$)/.test(n.slice(i+term.length));
+    const before = (i===0 || /[^a-z]/.test(n[i-1]) || term.length >= 5 || endOfWord) && !NOT_BEFORE.test(pre);
+    const rest = n.slice(i+term.length);
+    if(before && !NOT_AFTER.test(rest)) return true;
+    i = n.indexOf(term, i+1);
+  }
+  return false;
+}
+function foodRecipes(f){
+  if(f[1]==="no") return [];
+  const terms = foodTerms(f).map(t=>t.length>5 ? t.replace(/(en|e|n)$/,"") : t);
+  return RECIPES.filter(r => visible(r) && r.ing.some(i => terms.some(t => ingHas(i[2], t)))).slice(0,3);
+}
+function openFood(i){
+  const f = FOODS[i]; if(!f) return;
+  const al = allergyIn(f[0]+" "+f[3]);
+  const recs = foodRecipes(f);
+  openSheet(`<div class="head"><div><span class="small muted">${esc(GROUP_NAME[f[4]]||"")}</span><h2>${esc(f[0])}</h2></div><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <section class="answer a-${f[1]}" style="padding:12px 14px"><span class="verdict" style="font-size:24px">${VERDICT[f[1]]}</span></section>
+    ${al?`<div class="safe" style="background:var(--no-soft)"><b style="color:var(--no)">Deine Allergie:</b> „${esc(al)}“ ist bei dir eingetragen.</div>`:""}
+    <div class="fsec"><b>Worauf achten</b><span>${esc(f[2])}</span></div>
+    ${f[5]?`<div class="fsec"><b>Hinweis</b><span>${esc(f[5])}</span></div>`:""}
+    ${f[6].length?`<div class="fsec"><b>Gut für</b><div class="chips nutchips">${f[6].map(n=>`<span class="nchip">${esc(n)}</span>`).join("")}</div></div>`:""}
+    ${recs.length?`<div class="fsec"><b>Passende Rezepte</b><div class="rlist">${recs.map(r=>`<button class="meal" data-recipe="${r.id}"><span class="slot">${TYPES[r.type]}</span><span class="name">${esc(r.name)}</span><span class="go" aria-hidden="true">›</span></button>`).join("")}</div></div>`:""}`, f[0]);
+}
 function viewAmpel(){
   return `<div class="view">
     <h1>Darf ich das essen?</h1>
     <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
-      <input type="search" id="q" placeholder="z. B. Brie, Salami, Kaffee" value="${esc(ui.q)}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Lebensmittel suchen"></div>
-    <div id="flist" class="view" style="gap:12px">${foodResults()}</div>
+      <input type="search" id="q" placeholder="z. B. Ente, Maronen, Brie" value="${esc(ui.q)}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Lebensmittel suchen"></div>
     <div class="legend"><span class="pill p-ok">Unbedenklich</span><span class="pill p-warn">Mit Vorsicht</span><span class="pill p-no">Meiden</span></div>
+    <div id="flist" class="view" style="gap:12px">${foodResults()}</div>
     ${disclaimer()}</div>`;
 }
 
@@ -2036,6 +2296,9 @@ document.addEventListener("click", e => {
   if(b.dataset.rtype){ ui.rType=b.dataset.rtype; render(); return; }
   if(b.dataset.wtab){ ui.wTab=b.dataset.wtab; render(); return; }
   if(b.dataset.week){ ui.week=+b.dataset.week; render(); const c=document.querySelector(".weekcard"); if(c) c.scrollIntoView({block:"nearest"}); return; }
+  if(b.dataset.food){ openFood(+b.dataset.food); return; }
+  if(b.dataset.fgroup){ ui.fGroup=b.dataset.fgroup; document.getElementById("flist").innerHTML=foodResults(); return; }
+  if(b.dataset.letter){ const el=document.getElementById("L-"+b.dataset.letter); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); return; }
   if(b.dataset.example){ ui.q=b.dataset.example; const i=document.getElementById("q"); if(i) i.value=ui.q; document.getElementById("flist").innerHTML=foodResults(); return; }
   if(b.dataset.ltab){ ui.lTab=b.dataset.ltab; render(); return; }
   if(b.dataset.complaint){ ui.complaint=b.dataset.complaint; render(); return; }
