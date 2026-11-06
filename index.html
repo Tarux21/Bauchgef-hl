@@ -29,7 +29,7 @@
   --ok:#3f7d4a; --warn:#8a5f08; --no:#b23b4f;
   --ok-soft:#e2f2e5; --warn-soft:#fbf0d6; --no-soft:#fbe0e6;
   --shade:rgb(40 25 60 / .4);
-  --water:#5f93d6; --heart:#d4537e;
+  --water:#5f93d6; --water-soft:#dbe8f7; --heart:#d4537e;
   --display:"Fredoka","Nunito",ui-rounded,system-ui,sans-serif;
   --body:"Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;
   --nav-h:62px;
@@ -44,7 +44,7 @@
   --t1-fg:#f7a8c8; --t2-fg:#cdb3f5; --t3-fg:#9cc5f2; --t4-fg:#f2c27e;
   --ok:#8fcf9b; --warn:#e8c06a; --no:#f29aaa;
   --ok-soft:#24382a; --warn-soft:#3d3320; --no-soft:#46252e;
-  --shade:rgb(0 0 0 / .6); --water:#8ab8ee; --heart:#f08aac; color-scheme:dark}}
+  --shade:rgb(0 0 0 / .6); --water:#8ab8ee; --water-soft:#24344a; --heart:#f08aac; color-scheme:dark}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
@@ -176,6 +176,36 @@ button.frow{width:100%;text-align:left;font:inherit;color:inherit}
 .ruler span:first-of-type{left:0} .ruler span:last-of-type{right:0}
 .forme{background:var(--apricot-soft);border-radius:12px;padding:10px 12px;font-size:14.5px}
 .forme b{color:var(--apricot)}
+
+/* Tagesziel */
+.daygoal{gap:12px}
+.dg-ring{display:grid;place-items:center;background:var(--card);border-radius:22px;padding:8px}
+.dg-ring svg{max-width:100%;height:auto}
+.r-water{stroke:var(--water)} .r-water-bg{stroke:var(--water-soft)}
+.r-supp{stroke:var(--sage)} .r-supp-bg{stroke:var(--line)}
+@media (prefers-reduced-motion:no-preference){ .r-water,.r-supp{transition:stroke-dasharray .6s ease} }
+.f-skin{fill:#fde3d3} .f-hair{fill:#f4c4d6} .f-line{stroke:#7a4a5a} .f-fill{fill:#7a4a5a} .f-mouth{stroke:#c2507f} .f-cheek{fill:#f9a8c4} .f-hearts{font-family:var(--display);font-size:16px;fill:var(--apricot)}
+.dg-status{font-family:var(--display);font-size:17px;text-align:center}
+.dg-status small{display:block;font-family:var(--body);font-size:13px;color:var(--muted)}
+.c-water{color:var(--water)} .c-supp{color:var(--sage)}
+.dg-week{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px;color:var(--muted)}
+.dg-day{display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.dg-day.today span:last-child{color:var(--apricot);font-weight:800}
+.dg-dot{position:absolute;top:15px;width:6px;height:6px;border-radius:50%;background:var(--apricot)}
+.dg-streak{background:var(--apricot-soft);color:var(--apricot);border-radius:12px;padding:7px 10px;font-weight:800;font-size:14px;text-align:center}
+.dg-streak.muted-streak{background:var(--card);color:var(--muted);font-weight:600}
+.dg-list{display:flex;flex-direction:column;gap:6px}
+.dg-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--surface);width:100%;text-align:left}
+.dg-box{width:24px;height:24px;border-radius:8px;border:2px solid var(--sage);display:grid;place-items:center;flex:none}
+.dg-item[aria-pressed="true"] .dg-box{background:var(--sage)}
+.dg-item[aria-pressed="true"] .dg-box::after{content:"";width:6px;height:11px;border:solid var(--on-sage);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.dg-item[aria-pressed="true"] .dg-name{color:var(--muted);text-decoration:line-through}
+.dg-item small{margin-left:auto;color:var(--muted);text-align:right;font-size:12.5px;max-width:55%}
+.dg-water{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wbtn{border:0;border-radius:12px;padding:10px 16px;font-weight:800;background:var(--water);color:var(--surface)}
+.wbtn.minus{background:var(--water-soft);color:var(--water)}
+.suppform{display:grid;grid-template-columns:1fr auto;gap:8px}
+.suppform input[type=text]#suppHint{grid-column:1/2}
 
 /* Trink-Zähler */
 .glasses{display:flex;gap:10px;flex-wrap:wrap}
@@ -2439,6 +2469,17 @@ const NUT_DRAW = {
 const nutIcon = name => NUT_DRAW[name] || NUT_DRAW["Folsäure"];
 
 const SUPPLEMENTS = ["Folsäure","Jod","Eisen","Vitamin D","DHA"];
+// Vorschläge mit üblicher Tageszeit und Hinweis (nur Vorbelegung, frei änderbar)
+const SUPP_HINTS = {
+  "Folsäure":["morgens",""],
+  "Jod":["morgens",""],
+  "Eisen":["abends","Nicht zusammen mit Kaffee, Tee oder Milch. Vitamin C hilft."],
+  "Vitamin D":["mittags","Zu einer Mahlzeit."],
+  "DHA":["mittags","Zu einer Mahlzeit."],
+  "Magnesium":["abends","Mit etwas Abstand zu Eisen."],
+};
+const TIMES = ["morgens","mittags","abends"];
+const GLASS_L = 0.25;
 const SLOTS = [["f","Frühstück","f"],["m","Mittag","h"],["a","Abend","h"],["s","Snack","s"]];
 const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
 
@@ -2446,7 +2487,7 @@ const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
-const APP_VERSION = "15 · 06.11.2026";
+const APP_VERSION = "16 · 06.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -2460,6 +2501,10 @@ function normalize(s){
   if(!Array.isArray(s.hidden)) s.hidden = ["ofenlachs","seelachs"];
   if(!Array.isArray(s.allergies)) s.allergies = ["Walnuss","Kiwi"];
   ["supps","fav"].forEach(k => { if(!Array.isArray(s[k])) s[k] = []; });
+  // Tagesziel: Supplements mit Tageszeit und Hinweis (frühere Version: nur Namen)
+  if(!Array.isArray(s.suppList)) s.suppList = s.supps.map(n => ({name:n, time:(SUPP_HINTS[n]||["morgens"])[0], hint:(SUPP_HINTS[n]||["",""])[1]}));
+  s.suppList = s.suppList.filter(x => x && typeof x.name === "string" && x.name.trim()).map(x => ({name:x.name.trim(), time:TIMES.includes(x.time)?x.time:"morgens", hint:String(x.hint||"")}));
+  if(!(s.waterGoal >= 4 && s.waterGoal <= 12)) s.waterGoal = 6;
   ["taken","shopDone","water"].forEach(k => { if(!s[k] || typeof s[k] !== "object") s[k] = {}; });
   if(s.et && !/^\d{4}-\d{2}-\d{2}$/.test(s.et)) s.et = null;
   return s;
@@ -2629,16 +2674,63 @@ function viewHeute(){
     ${SLOTS.map(([k,lab])=>{ const r=byId[day[k]]; return r?`<button class="meal" data-recipe="${r.id}"><span class="slot">${lab}</span><span class="name">${esc(r.name)}</span><span class="go" aria-hidden="true">›</span></button>`:""; }).join("")}
   </div></section>`;
 
-  const w = S.water[todayISO()] || 0;
-  html += `<section class="panel"><div class="head" style="align-items:baseline"><h2>Getrunken</h2><span class="water-txt"><b>${fmtNum(w*0.25)} l</b> von 1,5 l</span></div>
-    <div class="glasses">${[1,2,3,4,5,6].map(i=>`<button class="glass${i<=w?" full":""}" data-glass="${i}" aria-label="${i} Glas${i>1?"er":""} (${fmtNum(i*0.25)} l)" aria-pressed="${i<=w}"></button>`).join("")}</div>
-    <p class="small muted" style="margin:0">Ein Glas = 250 ml. ${w>=6?"Ziel erreicht, mehr trinken ist auch gut.":"Antippen zum Füllen, nochmal tippen nimmt es zurück."}</p></section>`;
-  if(S.supps.length){
-    const t = S.taken[todayISO()] || [];
-    html += `<section class="view" style="gap:10px"><h2>Heute genommen</h2><div class="supp">${S.supps.map(s=>`<label><input type="checkbox" data-supp="${esc(s)}" ${t.includes(s)?"checked":""}>${esc(s)}</label>`).join("")}</div></section>`;
-  }
+  html += viewDayGoal();
   html += `<div class="tip"><b>Tipp für das ${T.name}:</b> ${esc(T.tip)}</div>`;
   return `<div class="view">${html}${disclaimer()}</div>`;
+}
+
+/* ---------- Tagesziel: Ring fürs Trinken (außen) und Supplements (innen) mit Baby ---------- */
+function dayStats(iso){
+  const w = S.water[iso] || 0, taken = (S.taken[iso] || []).filter(n => S.suppList.some(x => x.name===n));
+  const n = S.suppList.length;
+  return {w, wf: Math.min(1, w / S.waterGoal), taken, tf: n ? taken.length / n : 1, n};
+}
+const dayDone = st => st.wf >= 1 && st.tf >= 1;
+function streak(){
+  let k = 0, d = dayNum(todayISO());
+  if(dayDone(dayStats(isoFromNum(d)))) k++;
+  for(d = d-1; k < 400; d--){ if(dayDone(dayStats(isoFromNum(d)))) k++; else break; }
+  return k;
+}
+function ringSVG(wf, tf, size, withFace, mood){
+  const r1 = 92, r2 = 70, C1 = 2*Math.PI*r1, C2 = 2*Math.PI*r2, sw = withFace ? 16 : 20;
+  const arc = (r, C, f, cls) => `<circle cx="120" cy="120" r="${r}" class="${cls}-bg" fill="none" stroke-width="${sw}"/><circle cx="120" cy="120" r="${r}" class="${cls}" fill="none" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(Math.max(.001,f)*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 120 120)"/>`;
+  let face = "";
+  if(withFace){
+    const m = mood, eye = m < .34
+      ? `<path d="M102 116q5 4 10 0M128 116q5 4 10 0" class="f-line" stroke-width="2.5" fill="none" stroke-linecap="round"/>`
+      : m < 1 ? `<circle cx="107" cy="116" r="3" class="f-fill"/><circle cx="133" cy="116" r="3" class="f-fill"/>`
+      : `<path d="M102 118q5 -6 10 0M128 118q5 -6 10 0" class="f-line" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+    face = `<circle cx="120" cy="122" r="38" class="f-skin"/><path d="M92 112c4-22 52-22 56 0-10-8-46-8-56 0z" class="f-hair"/>${eye}
+      <path d="M110 133q10 ${(5+m*10).toFixed(1)} 20 0" class="f-mouth" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="100" cy="131" r="5" class="f-cheek" opacity="${(.35+m*.55).toFixed(2)}"/><circle cx="140" cy="131" r="5" class="f-cheek" opacity="${(.35+m*.55).toFixed(2)}"/>
+      ${m>=1?`<text x="120" y="26" text-anchor="middle" class="f-hearts">♡ ♡ ♡</text>`:""}`;
+  }
+  return `<svg viewBox="0 0 240 240" width="${size}" height="${size}" aria-hidden="true">${arc(r1,C1,wf,"r-water")}${S.suppList.length?arc(r2,C2,tf,"r-supp"):""}${face}</svg>`;
+}
+function viewDayGoal(){
+  const today = todayISO(), st = dayStats(today), all = dayDone(st);
+  const mood = Math.min(1, (st.wf + st.tf) / 2);
+  const goalL = fmtNum(S.waterGoal*GLASS_L);
+  const openGl = Math.max(0, S.waterGoal - st.w), openT = st.n - st.taken.length;
+  const status = all
+    ? `Beide Ringe geschlossen! 💜<small>Das Baby strahlt</small>`
+    : `<span class="c-water">${fmtNum(st.w*GLASS_L)} von ${goalL} l</span>${st.n?` · <span class="c-supp">${st.taken.length} von ${st.n} genommen</span>`:""}<small>${[openGl?`noch ${openGl} Glas`:"", openT>0?`${openT} Tablette${openT>1?"n":""}`:""].filter(Boolean).join(" und ") || "fast geschafft"}</small>`;
+  const d0 = dayNum(today);
+  const days = [];
+  for(let i=6;i>=0;i--){ const iso = isoFromNum(d0-i), x = dayStats(iso); days.push(`<div class="dg-day${i===0?" today":""}">${ringSVG(x.wf,x.tf,36,false,0)}${dayDone(x)?'<span class="dg-dot"></span>':""}<span>${i===0?"Heute":WEEKDAYS[(new Date(isoFromNum(d0-i)+"T12:00").getDay()+6)%7].slice(0,2)}</span></div>`); }
+  const k = streak();
+  const items = S.suppList.map(x => { const on = st.taken.includes(x.name);
+    return `<button class="dg-item" data-take="${esc(x.name)}" aria-pressed="${on}"><span class="dg-box" aria-hidden="true"></span><span class="dg-name">${esc(x.name)}</span><small>${esc(x.time)}${x.hint?`<br>${esc(x.hint)}`:""}</small></button>`; }).join("");
+  return `<section class="panel daygoal" aria-label="Tagesziel">
+    <div class="head" style="align-items:baseline"><h2>Tagesziel</h2><button class="btn ghost small" data-act="settings">Anpassen</button></div>
+    <div class="dg-ring">${ringSVG(st.wf, st.tf, 210, true, all?1:Math.min(.99,mood))}</div>
+    <div class="dg-status">${status}</div>
+    <div class="dg-week" aria-label="Letzte 7 Tage">${days.join("")}</div>
+    ${k>0?`<div class="dg-streak">🔥 ${k} Tag${k>1?"e":""} in Folge alles geschafft${all?"":" · heute noch offen"}</div>`:`<div class="dg-streak muted-streak">Schließe heute beide Ringe und starte eine Serie</div>`}
+    ${items?`<div class="dg-list">${items}</div>`:`<p class="small muted" style="margin:0">Noch keine Nahrungsergänzungen eingetragen. Über „Anpassen“ hinzufügen, was die Ärztin empfohlen hat.</p>`}
+    <div class="dg-water"><button class="wbtn minus" data-water="-1" aria-label="Ein Glas weniger">−</button><button class="wbtn" data-water="1">+ Glas</button><span class="small"><b class="c-water">${fmtNum(st.w*GLASS_L)} l</b> von ${goalL} l · 1 Glas = 250 ml</span></div>
+  </section>`;
 }
 
 function viewWeekCard(P){
@@ -2882,8 +2974,14 @@ function openRecipe(id){
 function openSettings(){
   openSheet(`<div class="head"><h2>Einstellungen</h2><button class="iconbtn" data-act="close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     ${viewSetup(true)}
-    <section class="panel"><h3>Erinnerung „Heute genommen“</h3><p class="small muted" style="margin:0">Nur das ankreuzen, was die Ärztin empfohlen hat.</p>
-      <div class="supp">${SUPPLEMENTS.map(s=>`<label><input type="checkbox" data-suppcfg="${s}" ${S.supps.includes(s)?"checked":""}>${s}</label>`).join("")}</div></section>
+    <section class="panel"><h3>Tagesziel</h3>
+      <div class="field"><label for="waterGoal">Trinkziel pro Tag</label><select id="waterGoal">${[6,7,8,9,10].map(g=>`<option value="${g}" ${S.waterGoal===g?"selected":""}>${fmtNum(g*GLASS_L)} Liter (${g} Gläser)</option>`).join("")}</select></div>
+      <b style="font-size:14px">Nahrungsergänzungen</b>
+      <p class="small muted" style="margin:0">Nur eintragen, was Ärztin oder Hebamme empfohlen haben.</p>
+      <div class="rlist">${S.suppList.map(x=>`<div class="frow"><div>${esc(x.name)}<span class="why">${esc(x.time)}${x.hint?` · ${esc(x.hint)}`:""}</span></div><button class="iconbtn" data-delsupp="${esc(x.name)}" aria-label="${esc(x.name)} entfernen" style="width:34px;height:34px">✕</button></div>`).join("") || `<span class="small muted">Noch keine eingetragen.</span>`}</div>
+      ${Object.keys(SUPP_HINTS).filter(n=>!S.suppList.some(x=>x.name===n)).length?`<div class="chips">${Object.keys(SUPP_HINTS).filter(n=>!S.suppList.some(x=>x.name===n)).map(n=>`<button class="chip" data-quicksupp="${n}">+ ${n}</button>`).join("")}</div>`:""}
+      <div class="suppform"><input type="text" id="suppName" placeholder="Eigenes, z. B. Kombipräparat" aria-label="Name"><select id="suppTime" aria-label="Tageszeit">${TIMES.map(t=>`<option>${t}</option>`).join("")}</select>
+        <input type="text" id="suppHint" placeholder="Hinweis (optional), z. B. nach dem Frühstück" aria-label="Hinweis"><button class="btn small" data-act="addSupp">Hinzufügen</button></div></section>
     <section class="panel"><h3>Allergien</h3>
       <p class="small muted" style="margin:0">Rezepte mit diesen Zutaten werden ausgeblendet. Bei der Lebensmittel-Suche erscheint ein Warnhinweis.</p>
       <div class="chips">${S.allergies.map(a=>`<button class="chip" data-unallergy="${esc(a)}" aria-label="${esc(a)} entfernen">${esc(a)} ✕</button>`).join("") || `<span class="small muted">Keine eingetragen.</span>`}</div>
@@ -2956,6 +3054,8 @@ function readRestore(file){
   r.readAsText(file);
 }
 
+function pruneDays(){ const min = dayNum(todayISO()) - 60; ["water","taken"].forEach(k => Object.keys(S[k]).forEach(d => { if(!/^\d{4}-\d{2}-\d{2}$/.test(d) || dayNum(d) < min) delete S[k][d]; })); }
+
 let toastT;
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2200); }
 
@@ -2977,7 +3077,10 @@ document.addEventListener("click", e => {
   if(b.dataset.example){ ui.q=b.dataset.example; const i=document.getElementById("q"); if(i) i.value=ui.q; document.getElementById("flist").innerHTML=foodResults(); return; }
   if(b.dataset.ltab){ ui.lTab=b.dataset.ltab; render(); return; }
   if(b.dataset.complaint){ ui.complaint=b.dataset.complaint; render(); return; }
-  if(b.dataset.glass){ const k=todayISO(), n=+b.dataset.glass, cur=S.water[k]||0; S.water={[k]: n===cur ? n-1 : n}; save(); render(); return; }
+  if(b.dataset.water){ const k=todayISO(); S.water[k]=Math.max(0,Math.min(20,(S.water[k]||0)+(+b.dataset.water))); pruneDays(); save(); render(); return; }
+  if(b.dataset.take){ const k=todayISO(), l=new Set(S.taken[k]||[]); l.has(b.dataset.take)?l.delete(b.dataset.take):l.add(b.dataset.take); S.taken[k]=[...l]; pruneDays(); save(); render(); return; }
+  if(b.dataset.delsupp){ S.suppList=S.suppList.filter(x=>x.name!==b.dataset.delsupp); save(); openSettings(); render(); return; }
+  if(b.dataset.quicksupp){ const n=b.dataset.quicksupp, h=SUPP_HINTS[n]||["morgens",""]; if(!S.suppList.some(x=>x.name===n)) S.suppList.push({name:n,time:h[0],hint:h[1]}); save(); openSettings(); render(); return; }
   if(b.dataset.unallergy){ S.allergies=S.allergies.filter(x=>x!==b.dataset.unallergy); save(); openSettings(); render(); return; }
   if(b.dataset.unhide){ S.hidden=S.hidden.filter(x=>x!==b.dataset.unhide); save(); openSettings(); render(); return; }
   const a = b.dataset.act;
@@ -2995,6 +3098,11 @@ document.addEventListener("click", e => {
   else if(a==="fav"){ const id=b.dataset.id; S.fav = S.fav.includes(id) ? S.fav.filter(x=>x!==id) : S.fav.concat(id); save(); openRecipe(id); render(); toast(S.fav.includes(id)?"Als Lieblingsrezept gemerkt":"Aus Favoriten entfernt"); }
   else if(a==="hide"){ const id=b.dataset.id; const on=!S.hidden.includes(id); S.hidden = on ? S.hidden.concat(id) : S.hidden.filter(x=>x!==id); save(); closeSheet(); render(); toast(on?"Wird nicht mehr vorgeschlagen. Rückgängig in den Einstellungen.":"Wird wieder vorgeschlagen"); }
   else if(a==="addAllergy"){ const v=(document.getElementById("newAllergy").value||"").trim(); if(!v){ toast("Bitte eine Allergie eintippen."); return; } if(!S.allergies.some(x=>norm(x)===norm(v))) S.allergies=S.allergies.concat(v); save(); openSettings(); render(); toast(`„${v}“ als Allergie eingetragen`); }
+  else if(a==="addSupp"){
+    const n=(document.getElementById("suppName").value||"").trim(); if(!n){ toast("Bitte einen Namen eintragen."); return; }
+    if(S.suppList.some(x=>norm(x.name)===norm(n))){ toast(`„${n}“ ist schon eingetragen.`); return; }
+    S.suppList.push({name:n, time:document.getElementById("suppTime").value, hint:(document.getElementById("suppHint").value||"").trim()});
+    save(); openSettings(); render(); toast(`„${n}“ hinzugefügt`); }
   else if(a==="newplan"){ S.plan = makePlan(dayNum(S.plan.start)); S.shopDone={}; save(); render(); toast("Neuer Wochenplan erstellt"); }
   else if(a==="addplan"){
     const d=+document.getElementById("apDay").value, s=document.getElementById("apSlot").value;
@@ -3017,8 +3125,7 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("change", e => {
   const t = e.target;
-  if(t.dataset.supp){ const k=todayISO(); const l=new Set(S.taken[k]||[]); t.checked?l.add(t.dataset.supp):l.delete(t.dataset.supp); S.taken={[k]:[...l]}; save(); }
-  else if(t.dataset.suppcfg){ const l=new Set(S.supps); t.checked?l.add(t.dataset.suppcfg):l.delete(t.dataset.suppcfg); S.supps=SUPPLEMENTS.filter(s=>l.has(s)); save(); render(); }
+  if(t.id==="waterGoal"){ S.waterGoal=+t.value; save(); render(); }
   else if(t.dataset.shop){ if(t.checked) S.shopDone[t.dataset.shop]=1; else delete S.shopDone[t.dataset.shop]; save(); t.closest(".shop-item").classList.toggle("done",t.checked); }
   else if(t.dataset.slot){ S.plan.days[+t.dataset.day][t.dataset.slot]=t.value||null; save(); }
   else if(t.id==="restoreFile" && t.files && t.files[0]){ readRestore(t.files[0]); }
