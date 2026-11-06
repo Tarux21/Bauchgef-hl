@@ -28,6 +28,7 @@ DEFAULTS = {
     "waterTimes": ["11:00", "14:00", "17:00"],
     "waterOn": True,
     "quietAfter": "21:00",
+    "apptReminder": "18:00",
     "waterGoal": 6,
     "supps": [],
 }
@@ -109,6 +110,13 @@ def due_messages(dev, now):
                 names = " und ".join([", ".join(open_[:-1]), open_[-1]] if len(open_) > 1 else open_)
                 hint = next((s.get("hint") for s in cfg["supps"] if s["name"] in open_ and s.get("hint")), "")
                 out.append(("Zeit für " + names + " 💊", hint or "Kurz abhaken, dann ist der lila Ring voller.", "supp-" + slot))
+    # Eigene Termine: Erinnerung am Vortag
+    if cfg.get("apptReminder") and hm(cfg["apptReminder"]) == minute:
+        tomorrow = (now.date() + timedelta(days=1)).isoformat()
+        for a in cfg.get("appts", []):
+            if a.get("date") == tomorrow:
+                out.append(("Morgen: " + a["title"] + (f" um {a['time']} Uhr" if a.get("time") else "") + " 📅",
+                            "Mutterpass einpacken und Fragen notieren.", "appt-" + a["date"] + a.get("time", "")))
     # Trinken: nur wenn hinter dem Plan (gleichmäßig verteilt von 8 bis 20 Uhr)
     if cfg.get("waterOn"):
         goal = int(cfg.get("waterGoal") or 6)
@@ -155,6 +163,8 @@ def clean_settings(s):
     out["waterTimes"] = [t for t in s.get("waterTimes", []) if isinstance(t, str) and len(t) == 5][:8]
     out["waterOn"] = bool(s.get("waterOn", True))
     out["waterGoal"] = max(4, min(12, int(s.get("waterGoal", 6))))
+    out["appts"] = [{"title": str(a.get("title", ""))[:80], "date": str(a.get("date", ""))[:10], "time": str(a.get("time", ""))[:5]}
+                     for a in s.get("appts", []) if isinstance(a, dict) and a.get("title") and len(str(a.get("date", ""))) == 10][:50]
     out["supps"] = [{"name": str(x.get("name", ""))[:60], "time": x.get("time") if x.get("time") in ("morgens", "mittags", "abends") else "morgens", "hint": str(x.get("hint", ""))[:120]}
                     for x in s.get("supps", []) if isinstance(x, dict) and x.get("name")][:20]
     return out
@@ -218,6 +228,9 @@ class Handler(BaseHTTPRequestHandler):
 
 
 # ---------------------------------------------------------------- Selbsttest
+def datetime_shift(dev):
+    d = json.loads(json.dumps(dev)); d["settings"]["appts"][0]["date"] = "2026-11-09"; return d
+
 def selftest():
     sent = []
     fake = lambda sub, t, b, tag: sent.append((t, b)) or True
@@ -243,6 +256,10 @@ def selftest():
     checks.append(("neuer Tag: Stand von gestern zählt nicht", len(due_messages(dev, at(8, 30))) == 1))
     dev["settings"]["quietAfter"] = "19:00"
     checks.append(("Ruhezeit ab 19 Uhr", due_messages(dev, at(19, 30)) == []))
+    dev["settings"]["quietAfter"] = "21:00"
+    dev["settings"]["appts"] = clean_settings({"appts": [{"title": "Frauenarzt", "date": "2026-11-08", "time": "09:30"}]})["appts"]
+    checks.append(("Termin am Vortag 18 Uhr", [t for t, _, _ in due_messages(dev, at(18, 0))] == ["Morgen: Frauenarzt um 09:30 Uhr 📅"]))
+    checks.append(("Termin nicht zwei Tage vorher", due_messages(datetime_shift(dev), at(18, 0)) == []))
     global DATA_DIR
     import tempfile
     DATA_DIR = tempfile.mkdtemp()
