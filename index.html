@@ -145,6 +145,8 @@ input[type=text]{border:1px solid var(--line);background:var(--surface);border-r
 button.frow{width:100%;text-align:left;font:inherit;color:inherit}
 .groups{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .groups .chip{white-space:nowrap;flex:none}
+.groups .chip.kitchen{border-color:var(--apricot);color:var(--apricot)}
+.groups .chip.kitchen[aria-pressed="true"]{background:var(--apricot);color:var(--surface)}
 .abc{display:flex;flex-wrap:wrap;gap:2px}
 .abc button{border:0;background:none;color:var(--sage);font-weight:800;font-size:14px;min-width:28px;height:30px;border-radius:8px}
 .abc button:active{background:var(--sage-soft)}
@@ -1946,6 +1948,158 @@ const FOOD_MORE2 = {
 };
 Object.entries(FOOD_MORE2).forEach(([g, list]) => FOOD_DATA[g].push(...list));
 
+/* ---------- Restaurant-Küchen ---------- */
+FOOD_GROUPS.push(
+ ["asiatisch","Asiatisch (Restaurant)","Heiß und frisch zubereitet ist am sichersten. Im Zweifel nachfragen, ob etwas roh oder halbgar ist."],
+ ["italienisch","Italienisch (Restaurant)","Heiß zubereitet unbedenklich. Auf rohen Schinken, Salami, rohes Ei und Wein in Soßen achten."],
+ ["griechisch","Griechisch (Restaurant)","Gegrilltes ganz durchgaren lassen. Bei Feta und Joghurt nach pasteurisierter Milch fragen."],
+ ["mexikanisch","Mexikanisch (Restaurant)","Fleisch durchgegart, Käse geschmolzen. Frischer Käse (Queso fresco) nur pasteurisiert."],
+ ["tuerkisch","Türkisch & Döner","Fleisch gut durchgegart, Soßen aus pasteurisiertem Joghurt, Salat frisch."]
+);
+const FOOD_KUECHE = {
+ asiatisch:[
+  /* chinesisch */
+  ["Gebratene Nudeln, gebratener Reis","ok","Ei im Reis ganz durchgebraten.","","","bami goreng nasi goreng chow mein"],
+  ["Knusprige Ente, Peking-Ente","ok","Fleisch muss durchgegart sein, nicht rosa.","Haut sehr fett, bei Sodbrennen lieber ohne.","Eisen,Protein","ente knusprig"],
+  ["Hühnchen süß-sauer, Kung Pao","ok","","","Protein","gong bao"],
+  ["Chop Suey, Gerichte mit Sojasprossen","warn","Sprossen werden oft nur kurz geschwenkt. Ohne Sprossen bestellen oder ganz durchgaren lassen.","","","sprossen gemüse"],
+  ["Wan-Tan-Suppe, Eierblumensuppe","ok","Heiß, das Ei gart in der Suppe durch.","","","wonton"],
+  ["Mapo Tofu","ok","","Sehr scharf, kann Sodbrennen verstärken.","Protein",""],
+  ["Krupuk, Glückskekse","ok","","","","krabbenchips"],
+  ["Tausendjährige Eier","warn","Konservierte Eier, früher teils mit Blei behandelt. Besser meiden.","","",""],
+  ["Strohpilze, Shiitake im Gericht","ok","Im Restaurant meist gut gegart. Shiitake nie roh oder halbgar.","","","shiitake pilze"],
+  /* japanisch */
+  ["Sushi mit Garnele (Ebi), Tamago, Inari","warn","Gegarte Füllungen sind in Ordnung, wenn frisch zubereitet. Roher Fisch nicht.","","","ebi nigiri tamago inari"],
+  ["Unagi (gegrillter Aal)","warn","Gegart, aber Aal enthält oft Schadstoffe. Nur selten.","","",""],
+  ["Onigiri, Bento","warn","Je nach Füllung. Ohne rohen Fisch in Ordnung.","","",""],
+  ["Udon-Suppe, Miso-Suppe","ok","Heiß unbedenklich.","","",""],
+  ["Yakitori, Karaage, Tonkatsu","ok","Durchgegart.","","Protein",""],
+  ["Oyakodon, Donburi mit Ei","warn","Das Ei ist oft nur halb gestockt. Durchgegart bestellen.","","",""],
+  ["Sukiyaki, Shabu-Shabu","warn","Rohes Ei zum Dippen weglassen, Fleisch ganz durchgaren.","","",""],
+  ["Takoyaki","ok","Ganz durchgebacken.","","",""],
+  ["Mochi, Dorayaki","ok","","","",""],
+  ["Wakame-Salat, Seetangsalat","warn","Sehr viel Jod. Nur eine kleine Portion.","","Jod","algensalat"],
+  ["Bonito-Flocken","ok","Kleine Mengen, z. B. in heißer Suppe.","","",""],
+  ["Fischkuchen (Kamaboko, Narutomaki)","warn","Kalt Listerien möglich. In heißer Suppe unbedenklich.","","",""],
+  /* thailändisch */
+  ["Tom Kha Gai, Tom Yum","ok","Heiß, Fleisch und Garnelen durchgegart.","","",""],
+  ["Satay-Spieße","ok","Durchgegrillt. Erdnusssoße nur ohne Erdnussallergie.","","Protein",""],
+  ["Massaman-Curry, Panang-Curry","ok","","","",""],
+  ["Pad Kra Pao (mit Spiegelei)","warn","Das Spiegelei hat meist flüssiges Eigelb. Ohne Ei oder durchgebraten bestellen.","","",""],
+  ["Som Tam (Papayasalat)","warn","Aus unreifer Papaya, oft mit rohen Krabben. Besser meiden.","","",""],
+  ["Larb (Hacksalat)","warn","Hack wird teils nur kurz gegart. Nur ganz durchgegart.","","",""],
+  ["Glasnudelsalat (Yum Woon Sen)","ok","Garnelen und Hack durchgegart.","","",""],
+  ["Mango Sticky Rice","ok","","","",""],
+  /* vietnamesisch */
+  ["Bún Chả, Bún Bò, gegrilltes Fleisch mit Reisnudeln","ok","Fleisch durchgegrillt, Kräuter gewaschen.","","Protein","bun"],
+  ["Bánh Mì","warn","Oft mit Leberpastete (Pâté) und kalter Wurst belegt. Nur mit gegrilltem Fleisch oder Tofu bestellen.","","","banh mi"],
+  ["Rohe Kräuterplatte, Salatbeilage","warn","Unklar, wie gründlich gewaschen wurde. Im Zweifel weglassen.","","",""],
+  ["Vietnamesischer Eiskaffee","warn","Sehr starker Kaffee mit viel Koffein.","","","ca phe sua da"],
+  /* koreanisch */
+  ["Bulgogi, Korean Fried Chicken","ok","Durchgegart.","","Protein",""],
+  ["Japchae, Tteokbokki","ok","","","",""],
+  ["Kimbap","warn","Je nach Füllung. Ohne rohen Fisch und frisch in Ordnung.","","",""],
+  ["Yukhoe (rohes Rindfleisch)","no","Rohes Fleisch: Toxoplasmose.","","",""],
+  /* indisch */
+  ["Chicken Tikka Masala, Korma, Vindaloo","ok","Hähnchen durchgegart.","Scharfes kann Sodbrennen verstärken.","Protein",""],
+  ["Palak Paneer","ok","Paneer aus pasteurisierter Milch.","","Calcium,Eisen,Folsäure",""],
+  ["Biryani","ok","","","",""],
+  ["Samosa, Pakora","ok","Frisch frittiert.","","",""],
+  ["Mango Lassi","ok","Aus pasteurisiertem Joghurt.","","Calcium",""],
+  ["Masala Chai","warn","Enthält Schwarztee (Koffein).","","",""],
+  /* Meeresfrüchte im Asia-Restaurant */
+  ["Muscheln in Soße (Asia)","ok","Ganz durchgegart. Geschlossene Muscheln nicht essen.","","Eisen,Protein","miesmuscheln asiatisch"],
+  ["Garnelen, Scampi (Asia)","ok","Ganz durchgegart, nicht glasig.","","Protein",""],
+  ["Gedämpfter oder gebratener Fisch (Asia)","ok","Ganz durchgegart.","","Protein,Jod",""],
+  ["Seeigel, rohe Meeresfrüchte","no","Roh: Listerien, Noroviren.","","","uni"],
+  ["Abalone, Seegurke (gegart)","ok","Gegart unbedenklich.","","",""],
+  ["Fischbällchen","ok","Heiß gegart.","","",""],
+ ],
+ italienisch:[
+  ["Pizza Quattro Formaggi","ok","Heiß unbedenklich, der Käse ist durcherhitzt.","","Calcium","vier käse"],
+  ["Pizza Frutti di Mare","ok","Meeresfrüchte durchgegart.","","",""],
+  ["Pizza Hawaii, Prosciutto cotto","ok","Mit Kochschinken unbedenklich.","","",""],
+  ["Pizza Diavola, Pizza mit scharfer Salami","warn","Salami ist Rohwurst. Besser ein anderer Belag.","","",""],
+  ["Pizza mit Rucola und Parmaschinken","no","Der rohe Schinken kommt kalt nach dem Backen darauf.","","","pizza parma"],
+  ["Spaghetti Bolognese","ok","","","Eisen,Protein",""],
+  ["Spaghetti aglio e olio, Arrabbiata, Napoli","ok","","","",""],
+  ["Pasta mit Pesto","ok","","","",""],
+  ["Pasta frutti di mare","ok","Meeresfrüchte ganz durchgegart.","","Protein",""],
+  ["Spaghetti alle vongole","warn","Wird meist mit Weißwein gekocht. Ohne Wein bestellen.","","",""],
+  ["Cannelloni, Pasta al forno","ok","Heiß unbedenklich.","","",""],
+  ["Ossobuco","warn","Wird mit Wein geschmort.","","",""],
+  ["Saltimbocca","warn","Mit Parmaschinken, der nur kurz mitgebraten wird. Lieber meiden.","","",""],
+  ["Bruschetta","ok","","","",""],
+  ["Caprese (Tomate-Mozzarella)","ok","Mozzarella aus pasteurisierter Milch.","","Calcium",""],
+  ["Arancini, Focaccia","ok","","","",""],
+  ["Piadina","warn","Je nach Füllung. Ohne rohen Schinken und Salami.","","",""],
+  ["Parmigiana di melanzane","ok","Heiß unbedenklich.","","Calcium",""],
+  ["Minestrone","ok","","","Ballaststoffe",""],
+  ["Affogato (Eis mit Espresso)","warn","Espresso: Koffein. Eis aus der Eisdiele.","","",""],
+  ["Cantuccini","ok","Enthalten Mandeln.","","",""],
+  ["Limoncello, Grappa, Amaretto","no","Alkohol.","","",""],
+ ],
+ griechisch:[
+  ["Bauernsalat (Choriatiki)","warn","Feta nur aus pasteurisierter Milch. Im Restaurant nachfragen.","","Calcium","griechischer salat"],
+  ["Saganaki (gebratener Käse)","ok","Heiß gebraten unbedenklich.","","Calcium",""],
+  ["Spanakopita, Tiropita","ok","Gebacken unbedenklich.","","Calcium,Folsäure","blätterteig spinat feta"],
+  ["Dolmades (gefüllte Weinblätter)","ok","","","",""],
+  ["Taramas (Fischrogen-Creme)","no","Aus gesalzenem, nicht erhitztem Fischrogen.","","","taramosalata"],
+  ["Gegrillter Oktopus, Kalamari","ok","Ganz durchgegart.","","Protein",""],
+  ["Gegrillte Sardinen, Dorade","ok","Ganz durchgegart.","","Omega-3,Protein",""],
+  ["Pastitsio","ok","Heiß unbedenklich.","","",""],
+  ["Stifado","warn","Wird meist mit Rotwein geschmort.","","",""],
+  ["Kleftiko, Lammkeule","ok","Ganz durchgegart.","","Eisen,Protein",""],
+  ["Gigantes, Fava","ok","","","Eisen,Folsäure,Ballaststoffe",""],
+  ["Griechischer Joghurt mit Honig","ok","","","Calcium,Protein",""],
+  ["Baklava, Loukoumades","ok","Enthält Nüsse (Allergie beachten).","","",""],
+  ["Ouzo, Retsina, Metaxa","no","Alkohol.","","",""],
+ ],
+ mexikanisch:[
+  ["Enchiladas, Fajitas","ok","Fleisch durchgegart.","","Protein",""],
+  ["Chili con Carne","ok","","","Eisen,Protein,Ballaststoffe",""],
+  ["Frijoles, Bohnenmus","ok","","","Eisen,Folsäure,Ballaststoffe","refried beans"],
+  ["Pico de Gallo","ok","Frische Zutaten, gründlich gewaschen.","","Vitamin C",""],
+  ["Queso fresco, Frischkäse (mexikanisch)","warn","Oft aus Rohmilch. Nur pasteurisiert oder geschmolzen.","","","queso"],
+  ["Sour Cream","ok","","","",""],
+  ["Tamales, Elote (Maiskolben)","ok","","","",""],
+  ["Churros","ok","","","",""],
+  ["Horchata","ok","","","",""],
+  ["Margarita, Tequila","no","Alkohol.","","",""],
+ ],
+ tuerkisch:[
+  ["Döner-Teller, Döner im Brot","warn","Fleisch muss gut durchgegart sein (außen abgeschnitten). Soße aus pasteurisiertem Joghurt.","","Protein","döner kebab"],
+  ["Lahmacun, Pide","ok","Heiß gebacken, Hack durchgegart.","","",""],
+  ["Köfte, Adana Kebap, Iskender","ok","Ganz durchgegrillt.","","Eisen,Protein",""],
+  ["Börek","ok","Gebacken unbedenklich.","","",""],
+  ["Sucuk gebraten, Sucuk mit Ei","warn","Sucuk nur durchgebraten. Ei ganz stocken lassen.","","",""],
+  ["Menemen (Rührei mit Tomaten)","warn","Ei wird oft weich serviert. Durchgegart bestellen.","","",""],
+  ["Cacık","ok","Aus pasteurisiertem Joghurt, frisch.","","Calcium",""],
+  ["Weißkäse (Beyaz Peynir)","warn","Nur aus pasteurisierter Milch.","","Calcium",""],
+  ["Künefe","ok","Heiß, Käse geschmolzen.","","",""],
+  ["Simit","ok","","","",""],
+  ["Mercimek (Linsensuppe)","ok","","","Eisen,Folsäure,Protein",""],
+  ["Türkischer Tee, Mokka","warn","Koffein, zählt zu den 200 mg am Tag.","","",""],
+  ["Döner-Soßen (Knoblauch, Kräuter)","warn","Meist aus Joghurt oder Mayonnaise. Selbst gemacht mit rohem Ei möglich, im Zweifel nachfragen.","","","knoblauchsoße kräutersoße joghurtsoße scharfe soße dönersoße"],
+  ["Çiğ Köfte","warn","Traditionell aus rohem Fleisch. Heute meist vegetarisch aus Bulgur, dann unbedenklich. Nachfragen.","","","cig köfte"],
+  ["Rakı","no","Alkohol.","","",""],
+ ],
+};
+Object.entries(FOOD_KUECHE).forEach(([g, list]) => { FOOD_DATA[g] = (FOOD_DATA[g] || []).concat(list); });
+// Bestehende Restaurant-Einträge in die passende Küche verschieben
+const MOVE_TO = {
+ "Ramen mit weichem Ei":"asiatisch","Pho, Bibimbap":"asiatisch","Pad Thai":"asiatisch","Sommerrollen":"asiatisch","Frühlingsrollen, Dim Sum, Gyoza":"asiatisch",
+ "Thai-Curry, indisches Curry":"asiatisch","Butter Chicken, Tandoori":"asiatisch","Raita, Lassi (Restaurant)":"asiatisch","Tempura, Teriyaki, Miso-Suppe":"asiatisch",
+ "Okonomiyaki":"asiatisch","Curry, Dal (Restaurant)":"asiatisch","Korean BBQ, Tischgrill":"asiatisch","Fondue Chinoise, Hot Pot":"asiatisch","Kimchi":"asiatisch",
+ "Sushi mit rohem Fisch, Sashimi":"asiatisch","Sushi vegetarisch oder mit gegartem Fisch":"asiatisch","Ceviche, Poke Bowl mit rohem Fisch":"asiatisch","Tataki, rosa gebratener Thunfisch":"asiatisch",
+ "Pizza Margherita, Funghi, Gemüse":"italienisch","Pizza Salami":"italienisch","Pizza mit Parmaschinken":"italienisch","Pizza Tonno":"italienisch","Pasta, Lasagne, Aufläufe":"italienisch",
+ "Calzone":"italienisch","Risotto":"italienisch","Spaghetti Carbonara":"italienisch","Vitello tonnato":"italienisch","Carpaccio":"italienisch","Tiramisu":"italienisch",
+ "Moussaka, Bifteki":"griechisch","Tzatziki":"griechisch","Schaschlik, Souvlaki, Spieße":"griechisch",
+ "Tacos, Burrito, Quesadilla":"mexikanisch","Tortilla-Chips, Nachos":"mexikanisch","Guacamole":"mexikanisch",
+ "Döner, Gyros":"tuerkisch","Kebab-Teller, Shawarma":"tuerkisch","Ayran, Lassi":"tuerkisch",
+};
+Object.keys(FOOD_DATA).forEach(g => { FOOD_DATA[g] = FOOD_DATA[g].filter(e => { const to = MOVE_TO[e[0]]; if(to && to !== g){ FOOD_DATA[to].push(e); return false; } return true; }); });
+
 // Flache Liste für Suche und Steckbrief: [Name, Stufe, Worauf achten, Suchbegriffe, Gruppe, Hinweis, Nährstoffe]
 const FOODS = [];
 FOOD_GROUPS.forEach(([g,,def]) => (FOOD_DATA[g]||[]).forEach(([n,st,ach,hint,nut,syn]) => FOODS.push([n, st, ach || def, syn||"", g, hint||"", nut ? nut.split(",") : []])));
@@ -2115,7 +2269,7 @@ const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
-const APP_VERSION = "11 · 06.11.2026";
+const APP_VERSION = "12 · 06.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -2375,7 +2529,7 @@ function searchFoods(raw){
     else if(startWord.test(syn)) sc = 2.5;
     else if(syn.includes(q)) sc = 2;
     else { // Suchbegriff enthält einen bekannten Begriff, z. B. „Kalbsleberwurst“ → „Leberwurst“
-      const words = (n.replace(/[(),/.]/g," ")+" "+syn).split(/\s+/).filter(w=>w.length>=4);
+      const words = (n.replace(/[(),/.]/g," ")+" "+syn).split(/\s+/).filter(w=>w.length>=4 || (w.length===3 && syn.split(/\s+/).includes(w)));
       const hits = [...new Set(words.filter(w=>q.includes(w)))];
       const len = hits.reduce((t,w)=>t+w.length,0);
       if(len) sc = 1 + Math.min(len,20)/20;
@@ -2396,7 +2550,12 @@ function bigCard(s, verdict, title, why, note, idx){
 }
 const fidx = f => FOODS.indexOf(f);
 function smallRow(f){ return `<button class="frow" data-food="${fidx(f)}"><div>${esc(f[0])}<span class="why">${esc(firstSentence(f[2]))}</span></div><span class="pill p-${f[1]}">${VERDICT[f[1]]}</span></button>`; }
-const firstSentence = t => { const m = String(t).match(/^.*?[.!?](\s|$)/); return m ? m[0].trim() : t; };
+const ABBR = /(^|\s)(z|B|ca|bzw|d|h|u|o|Min|SSW|Std|evtl|ggf|inkl|max|mind)$/;
+function firstSentence(t){
+  t = String(t); const re = /[.!?](\s|$)/g; let m;
+  while((m = re.exec(t))){ const before = t.slice(0, m.index); if(!ABBR.test(before)) return t.slice(0, m.index+1); }
+  return t;
+}
 function foodResults(){
   const R = searchFoods(ui.q);
   if(!R) return foodBrowse();
@@ -2412,14 +2571,15 @@ function foodResults(){
   return out;
 }
 /* Ohne Suchbegriff: alle Lebensmittel nach Gruppe und A bis Z */
+const KITCHENS = ["asiatisch","italienisch","griechisch","mexikanisch","tuerkisch"];
 function foodBrowse(){
   const g = ui.fGroup || "alle";
   const list = FOODS.filter(f => g==="alle" || f[4]===g).slice().sort((x,y)=>x[0].localeCompare(y[0],"de"));
   const byLetter = {};
-  list.forEach(f => { let L = f[0][0].toUpperCase(); L = {"Ä":"A","Ö":"O","Ü":"U"}[L] || L; (byLetter[L] = byLetter[L] || []).push(f); });
+  list.forEach(f => { const L = norm(f[0][0]).toUpperCase(); (byLetter[L] = byLetter[L] || []).push(f); });
   const letters = Object.keys(byLetter).sort();
-  return `<p class="small muted" style="margin:0">${FOODS.length} Lebensmittel zum Stöbern. Antippen zeigt den Steckbrief.</p>
-    <div class="chips groups"><button class="chip" data-fgroup="alle" aria-pressed="${g==="alle"}">Alle</button>${FOOD_GROUPS.map(([k,n])=>`<button class="chip" data-fgroup="${k}" aria-pressed="${g===k}">${esc(n)}</button>`).join("")}</div>
+  return `<p class="small muted" style="margin:0">${FOODS.length} Lebensmittel zum Stöbern. Im Restaurant: Küche antippen. Antippen eines Eintrags zeigt den Steckbrief.</p>
+    <div class="chips groups"><button class="chip" data-fgroup="alle" aria-pressed="${g==="alle"}">Alle</button>${[...FOOD_GROUPS.filter(x=>KITCHENS.includes(x[0])),...FOOD_GROUPS.filter(x=>!KITCHENS.includes(x[0]))].map(([k,n])=>`<button class="chip${KITCHENS.includes(k)?" kitchen":""}" data-fgroup="${k}" aria-pressed="${g===k}">${esc(n.replace(" (Restaurant)",""))}</button>`).join("")}</div>
     <nav class="abc" aria-label="Buchstaben">${letters.map(L=>`<button data-letter="${L}">${L}</button>`).join("")}</nav>
     ${letters.map(L=>`<h3 class="letter" id="L-${L}">${L}</h3><div class="rlist">${byLetter[L].map(smallRow).join("")}</div>`).join("")}`;
 }
