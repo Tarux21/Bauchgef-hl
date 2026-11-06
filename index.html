@@ -205,6 +205,11 @@ button.frow{width:100%;text-align:left;font:inherit;color:inherit}
 .wbtn{border:0;border-radius:12px;padding:10px 16px;font-weight:800;background:var(--water);color:var(--surface)}
 .wbtn.minus{background:var(--water-soft);color:var(--water)}
 .suppform{display:grid;grid-template-columns:1fr auto;gap:8px}
+.ptimes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ptimes label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+.ptimes input{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 6px;width:100%;min-width:0;font-size:15px}
+.ptoggle{display:flex;gap:8px;align-items:center;font-size:14px}
+.ptoggle input{width:20px;height:20px;accent-color:var(--sage)}
 .suppform input[type=text]#suppHint{grid-column:1/2}
 
 /* Trink-Zähler */
@@ -2486,7 +2491,7 @@ const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
-const APP_VERSION = "17 · 06.11.2026";
+const APP_VERSION = "18 · 07.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -2505,6 +2510,9 @@ function normalize(s){
   s.suppList = s.suppList.filter(x => x && typeof x.name === "string" && x.name.trim()).map(x => ({name:x.name.trim(), time:TIMES.includes(x.time)?x.time:"morgens", hint:String(x.hint||"")}));
   if(!(s.waterGoal >= 4 && s.waterGoal <= 12)) s.waterGoal = 6;
   delete s.plan; delete s.shopDone; delete s.supps;
+  const pd = {on:false, url:"", times:{morgens:"08:30", mittags:"13:00", abends:"19:30"}, waterOn:true, waterTimes:["11:00","14:00","17:00"], dirty:false};
+  s.push = Object.assign(pd, s.push && typeof s.push === "object" ? s.push : {});
+  if(!s.deviceId) s.deviceId = "dev-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
   if(s.tab === "woche") s.tab = "heute";
   ["taken","water"].forEach(k => { if(!s[k] || typeof s[k] !== "object") s[k] = {}; });
   if(s.et && !/^\d{4}-\d{2}-\d{2}$/.test(s.et)) s.et = null;
@@ -2878,6 +2886,14 @@ function openSettings(){
       ${Object.keys(SUPP_HINTS).filter(n=>!S.suppList.some(x=>x.name===n)).length?`<div class="chips">${Object.keys(SUPP_HINTS).filter(n=>!S.suppList.some(x=>x.name===n)).map(n=>`<button class="chip" data-quicksupp="${n}">+ ${n}</button>`).join("")}</div>`:""}
       <div class="suppform"><input type="text" id="suppName" placeholder="Eigenes, z. B. Kombipräparat" aria-label="Name"><select id="suppTime" aria-label="Tageszeit">${TIMES.map(t=>`<option>${t}</option>`).join("")}</select>
         <input type="text" id="suppHint" placeholder="Hinweis (optional), z. B. nach dem Frühstück" aria-label="Hinweis"><button class="btn small" data-act="addSupp">Hinzufügen</button></div></section>
+    <section class="panel" id="pushPanel"><h3>Erinnerungen</h3>
+      <p class="small muted" style="margin:0">Mitteilungen kommen von eurem Raspberry Pi über Tailscale. Erinnert wird nur an das, was noch offen ist. Nach 21 Uhr kommt nichts mehr.</p>
+      <div class="field"><label for="pushUrl">Adresse des Pi</label><input type="text" id="pushUrl" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://raspberrypi.tail1234.ts.net" value="${esc(S.push.url||"")}"></div>
+      <div class="ptimes">${TIMES.map(t=>`<label>Supplements ${t}<input type="time" data-ptime="${t}" value="${esc(S.push.times[t]||"")}"></label>`).join("")}</div>
+      <label class="ptoggle"><input type="checkbox" id="pushWaterOn" ${S.push.waterOn?"checked":""}> Trink-Erinnerung, wenn ich hinter dem Plan liege</label>
+      <div class="ptimes">${S.push.waterTimes.map((t,i)=>`<label>Trinken ${i+1}<input type="time" data-pwater="${i}" value="${esc(t)}"></label>`).join("")}</div>
+      <div class="btnrow">${S.push.on?`<button class="btn small" data-act="pushTest">Testnachricht</button><button class="btn ghost small" data-act="pushOn">Neu verbinden</button><button class="btn ghost small" data-act="pushOff">Ausschalten</button>`:`<button class="btn" data-act="pushOn">Mitteilungen einschalten</button>`}</div>
+      <p class="small" id="pushMsg" style="margin:0">${S.push.on?`✓ Eingeschaltet${S.push.lastSync?` · zuletzt abgeglichen ${new Date(S.push.lastSync).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}`:""}`:""}</p></section>
     <section class="panel"><h3>Allergien</h3>
       <p class="small muted" style="margin:0">Rezepte mit diesen Zutaten werden ausgeblendet. Bei der Lebensmittel-Suche erscheint ein Warnhinweis.</p>
       <div class="chips">${S.allergies.map(a=>`<button class="chip" data-unallergy="${esc(a)}" aria-label="${esc(a)} entfernen">${esc(a)} ✕</button>`).join("") || `<span class="small muted">Keine eingetragen.</span>`}</div>
@@ -2950,6 +2966,66 @@ function readRestore(file){
   r.readAsText(file);
 }
 
+/* ---------- Erinnerungen über den eigenen Server (Raspberry Pi im Tailscale-Netz) ---------- */
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+function pushBase(){ return (S.push.url || "").trim().replace(/\/+$/, ""); }
+function pushSettings(){ return {times:S.push.times, waterTimes:S.push.waterTimes, waterOn:S.push.waterOn, waterGoal:S.waterGoal, supps:S.suppList}; }
+async function pushPost(path, body){
+  const r = await fetch(pushBase() + path, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(Object.assign({device:S.deviceId}, body))});
+  if(!r.ok){ const e = new Error("HTTP " + r.status); e.status = r.status; throw e; }
+  return r.json();
+}
+function b64ToBytes(b64){ const p = "=".repeat((4 - b64.length % 4) % 4), s = atob((b64 + p).replace(/-/g,"+").replace(/_/g,"/")); return Uint8Array.from([...s].map(c => c.charCodeAt(0))); }
+async function pushConnect(){
+  const msg = t => { const el = document.getElementById("pushMsg"); if(el) el.textContent = t; };
+  if(!pushSupported()){ msg("Dieses Gerät unterstützt keine Mitteilungen für Web-Apps (iPhone: iOS 16.4 oder neuer)."); return; }
+  if(!isStandalone()){ msg("Bitte die App über das Symbol auf dem Home-Bildschirm öffnen, nicht in Safari."); return; }
+  const url = (document.getElementById("pushUrl").value || "").trim();
+  if(!/^https:\/\//.test(url)){ msg("Bitte die Adresse mit https:// eintragen, z. B. https://raspberrypi.tail1234.ts.net"); return; }
+  S.push.url = url; save();
+  msg("Verbinde …");
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm !== "granted"){ msg("Mitteilungen wurden nicht erlaubt. In den iPhone-Einstellungen unter Mitteilungen → Bauchgefühl änderbar."); return; }
+    const kr = await fetch(pushBase() + "/api/key"); if(!kr.ok) throw new Error("Schlüssel");
+    const {publicKey} = await kr.json();
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(sub){ try{ await sub.unsubscribe(); }catch(_){} }
+    sub = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64ToBytes(publicKey)});
+    await pushPost("/api/subscribe", {subscription: sub.toJSON(), settings: pushSettings()});
+    S.push.on = true; S.push.dirty = false; save();
+    await pushSyncStatus();
+    openSettings(); toast("Erinnerungen sind eingeschaltet");
+  }catch(e){
+    msg("Der Server ist nicht erreichbar. Ist Tailscale auf dem iPhone eingeschaltet und die Adresse richtig?");
+  }
+}
+async function pushOff(){
+  try{ const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if(sub) await sub.unsubscribe(); }catch(_){}
+  try{ if(pushBase()) await pushPost("/api/unsubscribe", {}); }catch(_){}
+  S.push.on = false; save(); openSettings(); toast("Erinnerungen ausgeschaltet");
+}
+async function pushTest(){
+  try{ await pushPost("/api/test", {}); toast("Testnachricht geschickt"); }
+  catch(e){ toast(e.status === 404 || e.status === 410 ? "Nicht mehr verbunden. Bitte neu einschalten." : "Server nicht erreichbar. Tailscale an?"); }
+}
+// Tagesstand und Einstellungen melden; schlägt es fehl, später nachholen
+let pushTimer = null;
+function pushSyncSoon(withSettings){ if(!S.push.on) return; if(withSettings) S.push.settingsDirty = true; S.push.dirty = true; save(); clearTimeout(pushTimer); pushTimer = setTimeout(pushSyncStatus, 1200); }
+async function pushSyncStatus(){
+  if(!S.push.on || !pushBase()) return;
+  const st = dayStats(todayISO());
+  try{
+    if(S.push.settingsDirty){ await pushPost("/api/settings", {settings: pushSettings()}); S.push.settingsDirty = false; }
+    await pushPost("/api/status", {date: todayISO(), water: st.w, taken: st.taken});
+    S.push.dirty = false; S.push.lastSync = Date.now(); save();
+  }catch(e){
+    if(e.status === 404){ S.push.on = false; save(); }
+  }
+}
+
 function pruneDays(){ const min = dayNum(todayISO()) - 60; ["water","taken"].forEach(k => Object.keys(S[k]).forEach(d => { if(!/^\d{4}-\d{2}-\d{2}$/.test(d) || dayNum(d) < min) delete S[k][d]; })); }
 
 let toastT;
@@ -2972,10 +3048,10 @@ document.addEventListener("click", e => {
   if(b.dataset.example){ ui.q=b.dataset.example; const i=document.getElementById("q"); if(i) i.value=ui.q; document.getElementById("flist").innerHTML=foodResults(); return; }
   if(b.dataset.ltab){ ui.lTab=b.dataset.ltab; render(); return; }
   if(b.dataset.complaint){ ui.complaint=b.dataset.complaint; render(); return; }
-  if(b.dataset.water){ const k=todayISO(); S.water[k]=Math.max(0,Math.min(20,(S.water[k]||0)+(+b.dataset.water))); pruneDays(); save(); render(); return; }
-  if(b.dataset.take){ const k=todayISO(), l=new Set(S.taken[k]||[]); l.has(b.dataset.take)?l.delete(b.dataset.take):l.add(b.dataset.take); S.taken[k]=[...l]; pruneDays(); save(); render(); return; }
-  if(b.dataset.delsupp){ S.suppList=S.suppList.filter(x=>x.name!==b.dataset.delsupp); save(); openSettings(); render(); return; }
-  if(b.dataset.quicksupp){ const n=b.dataset.quicksupp, h=SUPP_HINTS[n]||["morgens",""]; if(!S.suppList.some(x=>x.name===n)) S.suppList.push({name:n,time:h[0],hint:h[1]}); save(); openSettings(); render(); return; }
+  if(b.dataset.water){ const k=todayISO(); S.water[k]=Math.max(0,Math.min(20,(S.water[k]||0)+(+b.dataset.water))); pruneDays(); save(); render(); pushSyncSoon(); return; }
+  if(b.dataset.take){ const k=todayISO(), l=new Set(S.taken[k]||[]); l.has(b.dataset.take)?l.delete(b.dataset.take):l.add(b.dataset.take); S.taken[k]=[...l]; pruneDays(); save(); render(); pushSyncSoon(); return; }
+  if(b.dataset.delsupp){ S.suppList=S.suppList.filter(x=>x.name!==b.dataset.delsupp); save(); openSettings(); render(); pushSyncSoon(true); return; }
+  if(b.dataset.quicksupp){ const n=b.dataset.quicksupp, h=SUPP_HINTS[n]||["morgens",""]; if(!S.suppList.some(x=>x.name===n)) S.suppList.push({name:n,time:h[0],hint:h[1]}); save(); openSettings(); render(); pushSyncSoon(true); return; }
   if(b.dataset.unallergy){ S.allergies=S.allergies.filter(x=>x!==b.dataset.unallergy); save(); openSettings(); render(); return; }
   if(b.dataset.unhide){ S.hidden=S.hidden.filter(x=>x!==b.dataset.unhide); save(); openSettings(); render(); return; }
   const a = b.dataset.act;
@@ -2997,7 +3073,10 @@ document.addEventListener("click", e => {
     const n=(document.getElementById("suppName").value||"").trim(); if(!n){ toast("Bitte einen Namen eintragen."); return; }
     if(S.suppList.some(x=>norm(x.name)===norm(n))){ toast(`„${n}“ ist schon eingetragen.`); return; }
     S.suppList.push({name:n, time:document.getElementById("suppTime").value, hint:(document.getElementById("suppHint").value||"").trim()});
-    save(); openSettings(); render(); toast(`„${n}“ hinzugefügt`); }
+    save(); openSettings(); render(); pushSyncSoon(true); toast(`„${n}“ hinzugefügt`); }
+  else if(a==="pushOn"){ pushConnect(); }
+  else if(a==="pushOff"){ pushOff(); }
+  else if(a==="pushTest"){ pushTest(); }
   else if(a==="backup"){ doBackup(); }
   else if(a==="restore"){ const i=document.getElementById("restoreFile"); i.value=""; i.click(); }
   else if(a==="restoreNo"){ pendingRestore=null; document.getElementById("restoreConfirm").hidden=true; }
@@ -3008,7 +3087,10 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("change", e => {
   const t = e.target;
-  if(t.id==="waterGoal"){ S.waterGoal=+t.value; save(); render(); }
+  if(t.id==="waterGoal"){ S.waterGoal=+t.value; save(); render(); pushSyncSoon(true); }
+  else if(t.dataset.ptime){ S.push.times[t.dataset.ptime]=t.value; save(); pushSyncSoon(true); }
+  else if(t.dataset.pwater!=null && t.dataset.pwater!==""){ S.push.waterTimes[+t.dataset.pwater]=t.value; save(); pushSyncSoon(true); }
+  else if(t.id==="pushWaterOn"){ S.push.waterOn=t.checked; save(); pushSyncSoon(true); }
   else if(t.id==="restoreFile" && t.files && t.files[0]){ readRestore(t.files[0]); }
   else if(t.id==="rnut"){ ui.rNut=t.value||null; render(); }
   else if(t.id==="lmp" && t.value){ const et=document.getElementById("et"); if(et) et.value=isoFromNum(dayNum(t.value)+280); }
@@ -3016,7 +3098,11 @@ document.addEventListener("change", e => {
 document.addEventListener("input", e => { if(e.target.id==="q"){ ui.q=e.target.value; document.getElementById("flist").innerHTML=foodResults(); } });
 document.addEventListener("keydown", e => { if(e.key==="Escape" && !$sheet.hidden) closeSheet(); });
 
+try{ const qt = new URLSearchParams(location.search).get("tab"); if(qt) { S.tab = qt; history.replaceState(null, "", location.pathname); } }catch(_){}
 setTab(S.tab || "heute");
+if(navigator.serviceWorker) navigator.serviceWorker.addEventListener("message", e => { if(e.data && e.data.tab) setTab(e.data.tab); });
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible"){ render(); if(S.push.on) pushSyncStatus(); } });
+if(S.push.on) setTimeout(pushSyncStatus, 1500);
 
 /* Offline-Nutzung und Updates
    Beim Start und jedes Mal, wenn die App wieder in den Vordergrund kommt, nach einer neuen Version fragen.

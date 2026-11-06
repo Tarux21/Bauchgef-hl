@@ -8,7 +8,9 @@ Web-App fürs Handy: Ernährung in der Schwangerschaft, einfach gemacht.
 - **Darf ich?:** Lebensmittel-Suche mit 896 Steckbriefen (Liste zum Stöbern nach Gruppen und A bis Z, eigene Gruppen für asiatische, thailändische, vietnamesische, indische, italienische, spanische, französische, griechische, amerikanische, mexikanische und türkische Restaurants) und Suchbegriffen. Der beste Treffer erscheint groß mit „Unbedenklich“, „Mit Vorsicht“ oder „Meiden“ und Begründung (Listerien, Toxoplasmose, Salmonellen, Quecksilber, Koffein …). Steht etwas nicht in der Liste, antwortet die App nach Regeln (roh, geräuchert, Rohmilch, Alkohol, Rohwurst …). Eingetragene Allergien werden als „Deine Allergie“ angezeigt.
 - **Rezepte:** 176 Rezepte (52 Frühstück, 77 Hauptgerichte, 47 Snacks; 93 davon in höchstens 20 Minuten, 33 mit Tipp zum Einfrieren), sortiert nach den Nährstoffen, die im aktuellen Trimester wichtig sind. Jedes Rezept mit Sicherheitshinweis. Im Rezept „♥ Lieblingsrezept“ (Filter „Favoriten“) und „Nicht mehr vorschlagen“ (wieder einblenden über das Zahnrad auf „Heute“).
 
-Alle Eingaben bleiben nur auf dem Handy (Browser-Speicher). Über das Zahnrad → **Datensicherung → „Sichern und teilen“** lässt sich alles als kleine Textdatei per WhatsApp, Mail, Drive oder iCloud sichern und mit **„Wiederherstellen“** wieder einlesen, z. B. auf einem neuen Handy. Nach dem ersten Öffnen funktioniert die App auch ohne Internet.
+**Erinnerungen per Mitteilung** kommen optional von einem eigenen Raspberry Pi im Tailscale-Netz (siehe `server/README.md`). Dafür meldet die App Erinnerungszeiten, Supplement-Namen und den Tagesstand an den Pi, sonst nirgendwohin.
+
+Alle Eingaben bleiben sonst nur auf dem Handy (Browser-Speicher). Über das Zahnrad → **Datensicherung → „Sichern und teilen“** lässt sich alles als kleine Textdatei per WhatsApp, Mail, Drive oder iCloud sichern und mit **„Wiederherstellen“** wieder einlesen, z. B. auf einem neuen Handy. Nach dem ersten Öffnen funktioniert die App auch ohne Internet.
 
 ## Aufs Handy bringen
 
