@@ -2100,6 +2100,73 @@ const MOVE_TO = {
 };
 Object.keys(FOOD_DATA).forEach(g => { FOOD_DATA[g] = FOOD_DATA[g].filter(e => { const to = MOVE_TO[e[0]]; if(to && to !== g){ FOOD_DATA[to].push(e); return false; } return true; }); });
 
+/* ---------- Restaurant-Küchen: Spanisch und Indisch ---------- */
+FOOD_GROUPS.push(
+ ["spanisch","Spanisch (Restaurant)","Heiß zubereitet unbedenklich. Auf Jamón, Chorizo, Alioli und rohe Meeresfrüchte achten."],
+ ["indisch","Indisch (Restaurant)","Heiß zubereitet unbedenklich. Viele Gerichte sind scharf, das kann Sodbrennen verstärken."]
+);
+FOOD_DATA.spanisch = [
+ ["Gazpacho","ok","Kalte Gemüsesuppe aus rohem Gemüse. Frisch zubereitet in Ordnung.","","Vitamin C,Folsäure",""],
+ ["Salmorejo","warn","Oft mit rohem Schinken (Jamón) bestreut. Ohne Schinken bestellen.","","Vitamin C",""],
+ ["Tortilla española","warn","In Spanien oft innen noch flüssig. Ganz durchgebraten bestellen.","","Protein","spanische tortilla kartoffeltortilla"],
+ ["Patatas bravas","ok","Die scharfe Tomatensoße ist in Ordnung. Alioli dazu meiden.","","",""],
+ ["Alioli (spanisch)","no","Meist selbst gemacht mit rohem Ei.","","","allioli"],
+ ["Pimientos de Padrón","ok","","","Vitamin C",""],
+ ["Gambas al ajillo","ok","Garnelen ganz durchgegart, nicht glasig.","","Protein","knoblauchgarnelen"],
+ ["Pulpo a la gallega","ok","Gekochter Oktopus, unbedenklich.","","Protein,Eisen",""],
+ ["Calamares fritos, Pescaíto frito","ok","Frisch frittiert unbedenklich.","","Protein",""],
+ ["Boquerones en vinagre","no","Rohe, nur in Essig eingelegte Sardellen: Parasiten, Listerien.","","","eingelegte sardellen"],
+ ["Boquerones fritos","ok","Frittierte Sardellen, durchgegart.","","Protein,Calcium",""],
+ ["Jamón serrano, Jamón ibérico","no","Roher Schinken: Toxoplasmose, Listerien.","","","jamon"],
+ ["Chorizo gebraten, Chorizo al vino","warn","Chorizo nur ganz durchgebraten. Chorizo al vino wird in Wein geschmort.","","",""],
+ ["Croquetas","ok","Frisch frittiert unbedenklich.","","","kroketten"],
+ ["Albóndigas","ok","Hackbällchen, ganz durchgegart.","","Eisen,Protein",""],
+ ["Empanadas","ok","Gebacken, Füllung durchgegart.","","",""],
+ ["Pan con tomate","ok","","","",""],
+ ["Montaditos, Pintxos","warn","Je nach Belag. Ohne Jamón, Chorizo, Anchovis und Alioli.","","","pinchos"],
+ ["Huevos rotos","warn","Das Spiegelei hat flüssiges Eigelb und oft liegt Jamón darauf. Meiden oder anders bestellen.","","",""],
+ ["Ensaladilla rusa","warn","Oft mit selbst gemachter Mayonnaise. Nur mit Mayonnaise aus dem Glas.","","","russischer salat"],
+ ["Fabada, Cocido","ok","Lange gekochter Eintopf, Wurst darin durchgegart.","","Eisen,Protein","bohneneintopf"],
+ ["Espinacas con garbanzos","ok","","","Eisen,Folsäure",""],
+ ["Pimientos rellenos","ok","Füllung durchgegart.","","",""],
+ ["Secreto, Presa ibérica","warn","Iberisches Schwein wird oft rosa serviert. Ganz durchgebraten bestellen.","","Protein",""],
+ ["Mejillones, Navajas","ok","Muscheln ganz durchgegart. Geschlossene nicht essen.","","Eisen,Protein","miesmuscheln schwertmuscheln"],
+ ["Queso de cabra (Ziegenkäse)","warn","Nur pasteurisiert oder überbacken.","","Calcium",""],
+ ["Crema catalana","warn","Eiercreme, oft nur leicht erhitzt. Im Restaurant nachfragen.","","",""],
+ ["Flan","ok","Im Ofen gebackener Pudding, unbedenklich.","","Calcium",""],
+ ["Churros con chocolate","ok","","","",""],
+ ["Tinto de verano, Rebujito","no","Enthalten Wein.","","",""],
+];
+FOOD_DATA.indisch = [
+ ["Chana Masala","ok","","","Eisen,Folsäure,Protein,Ballaststoffe","kichererbsencurry"],
+ ["Dal Makhani, Dal Tadka","ok","","","Eisen,Folsäure,Protein","linsencurry"],
+ ["Aloo Gobi, Baingan Bharta","ok","","","Ballaststoffe,Vitamin C",""],
+ ["Saag Aloo, Saag Paneer","ok","Paneer aus pasteurisierter Milch.","","Eisen,Folsäure,Calcium",""],
+ ["Malai Kofta","ok","","","",""],
+ ["Paneer Tikka, Paneer Butter Masala","ok","Paneer aus pasteurisierter Milch.","","Calcium,Protein",""],
+ ["Rogan Josh, Lamm-Curry","ok","Lamm ganz durchgegart.","","Eisen,Protein",""],
+ ["Fisch-Curry, Garnelen-Curry","ok","Fisch und Garnelen durchgegart.","","Protein,Jod",""],
+ ["Seekh Kebab, Chicken 65, Tandoori-Fisch","ok","Durchgegrillt.","","Protein",""],
+ ["Naan, Garlic Naan, Cheese Naan","ok","","","",""],
+ ["Roti, Chapati, Paratha","ok","","","Ballaststoffe",""],
+ ["Papadam","ok","","","",""],
+ ["Masala Dosa, Idli, Sambar","ok","","","Eisen,Folsäure",""],
+ ["Onion Bhaji","ok","Frisch frittiert.","","",""],
+ ["Pani Puri, Chaat","warn","Street Food mit kalten, rohen Zutaten und Wasser. Nur in sehr gutem Restaurant.","","","golgappa"],
+ ["Mango-Chutney, Pickles (Achar)","ok","","","",""],
+ ["Dahi (indischer Joghurt)","ok","Aus pasteurisierter Milch.","","Calcium",""],
+ ["Kulfi","warn","Indisches Milcheis, oft selbst gemacht. Nur aus gutem Restaurant.","","",""],
+ ["Gulab Jamun, Kheer, Halwa","ok","","Sehr süß.","",""],
+ ["Ras Malai","ok","Aus pasteurisierter Milch.","","Calcium",""],
+ ["Paan (Betelblatt)","no","Enthält oft Betelnuss, die in der Schwangerschaft schadet.","","","betelnuss"],
+];
+const MOVE_TO2 = {
+ "Chicken Tikka Masala, Korma, Vindaloo":"indisch","Palak Paneer":"indisch","Biryani":"indisch","Samosa, Pakora":"indisch","Mango Lassi":"indisch","Masala Chai":"indisch",
+ "Butter Chicken, Tandoori":"indisch","Raita, Lassi (Restaurant)":"indisch","Curry, Dal (Restaurant)":"indisch",
+ "Paella":"spanisch","Tapas":"spanisch",
+};
+Object.keys(FOOD_DATA).forEach(g => { FOOD_DATA[g] = FOOD_DATA[g].filter(e => { const to = MOVE_TO2[e[0]]; if(to && to !== g){ FOOD_DATA[to].push(e); return false; } return true; }); });
+
 // Flache Liste für Suche und Steckbrief: [Name, Stufe, Worauf achten, Suchbegriffe, Gruppe, Hinweis, Nährstoffe]
 const FOODS = [];
 FOOD_GROUPS.forEach(([g,,def]) => (FOOD_DATA[g]||[]).forEach(([n,st,ach,hint,nut,syn]) => FOODS.push([n, st, ach || def, syn||"", g, hint||"", nut ? nut.split(",") : []])));
@@ -2269,7 +2336,7 @@ const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
-const APP_VERSION = "12 · 06.11.2026";
+const APP_VERSION = "13 · 06.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -2571,7 +2638,7 @@ function foodResults(){
   return out;
 }
 /* Ohne Suchbegriff: alle Lebensmittel nach Gruppe und A bis Z */
-const KITCHENS = ["asiatisch","italienisch","griechisch","mexikanisch","tuerkisch"];
+const KITCHENS = ["asiatisch","indisch","italienisch","spanisch","griechisch","mexikanisch","tuerkisch"];
 function foodBrowse(){
   const g = ui.fGroup || "alle";
   const list = FOODS.filter(f => g==="alle" || f[4]===g).slice().sort((x,y)=>x[0].localeCompare(y[0],"de"));
@@ -2579,7 +2646,7 @@ function foodBrowse(){
   list.forEach(f => { const L = norm(f[0][0]).toUpperCase(); (byLetter[L] = byLetter[L] || []).push(f); });
   const letters = Object.keys(byLetter).sort();
   return `<p class="small muted" style="margin:0">${FOODS.length} Lebensmittel zum Stöbern. Im Restaurant: Küche antippen. Antippen eines Eintrags zeigt den Steckbrief.</p>
-    <div class="chips groups"><button class="chip" data-fgroup="alle" aria-pressed="${g==="alle"}">Alle</button>${[...FOOD_GROUPS.filter(x=>KITCHENS.includes(x[0])),...FOOD_GROUPS.filter(x=>!KITCHENS.includes(x[0]))].map(([k,n])=>`<button class="chip${KITCHENS.includes(k)?" kitchen":""}" data-fgroup="${k}" aria-pressed="${g===k}">${esc(n.replace(" (Restaurant)",""))}</button>`).join("")}</div>
+    <div class="chips groups"><button class="chip" data-fgroup="alle" aria-pressed="${g==="alle"}">Alle</button>${[...KITCHENS.map(k=>FOOD_GROUPS.find(x=>x[0]===k)).filter(Boolean),...FOOD_GROUPS.filter(x=>!KITCHENS.includes(x[0]))].map(([k,n])=>`<button class="chip${KITCHENS.includes(k)?" kitchen":""}" data-fgroup="${k}" aria-pressed="${g===k}">${esc(n.replace(" (Restaurant)",""))}</button>`).join("")}</div>
     <nav class="abc" aria-label="Buchstaben">${letters.map(L=>`<button data-letter="${L}">${L}</button>`).join("")}</nav>
     ${letters.map(L=>`<h3 class="letter" id="L-${L}">${L}</h3><div class="rlist">${byLetter[L].map(smallRow).join("")}</div>`).join("")}`;
 }
@@ -2794,7 +2861,8 @@ document.addEventListener("click", e => {
   if(b.dataset.wtab){ ui.wTab=b.dataset.wtab; render(); return; }
   if(b.dataset.week){ ui.week=+b.dataset.week; render(); const c=document.querySelector(".weekcard"); if(c) c.scrollIntoView({block:"nearest"}); return; }
   if(b.dataset.food){ openFood(+b.dataset.food); return; }
-  if(b.dataset.fgroup){ ui.fGroup=b.dataset.fgroup; document.getElementById("flist").innerHTML=foodResults(); return; }
+  if(b.dataset.fgroup){ ui.fGroup=b.dataset.fgroup; document.getElementById("flist").innerHTML=foodResults();
+    const on=document.querySelector('.groups [aria-pressed="true"]'); if(on) on.scrollIntoView({inline:"center",block:"nearest"}); return; }
   if(b.dataset.letter){ const el=document.getElementById("L-"+b.dataset.letter); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); return; }
   if(b.dataset.example){ ui.q=b.dataset.example; const i=document.getElementById("q"); if(i) i.value=ui.q; document.getElementById("flist").innerHTML=foodResults(); return; }
   if(b.dataset.ltab){ ui.lTab=b.dataset.ltab; render(); return; }
