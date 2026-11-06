@@ -2167,6 +2167,65 @@ const MOVE_TO2 = {
 };
 Object.keys(FOOD_DATA).forEach(g => { FOOD_DATA[g] = FOOD_DATA[g].filter(e => { const to = MOVE_TO2[e[0]]; if(to && to !== g){ FOOD_DATA[to].push(e); return false; } return true; }); });
 
+/* ---------- Restaurant-Küchen: Französisch und Amerikanisch ---------- */
+FOOD_GROUPS.push(
+ ["franzoesisch","Französisch (Restaurant)","Fleisch wird oft rosa oder roh serviert, Soßen oft mit Wein, Käse oft aus Rohmilch. Nachfragen."],
+ ["amerikanisch","Amerikanisch (Restaurant)","Fleisch ganz durchgaren lassen, Burger und Steaks „well done“ bestellen. Eier nur durchgebraten."]
+);
+FOOD_DATA.franzoesisch = [
+ ["Steak tartare, Tatar de bœuf","no","Rohes Rindfleisch: Toxoplasmose, Listerien.","","","tartare"],
+ ["Steak frites, Entrecôte","warn","Wird meist rosa serviert. „Bien cuit“ (ganz durch) bestellen.","","Eisen,Protein","bien cuit"],
+ ["Bœuf bourguignon, Coq au vin","warn","Mit viel Wein geschmort, der Alkohol verkocht nur teilweise.","","Eisen,Protein","boeuf bourguignon"],
+ ["Confit de canard","ok","Entenkeule lange gegart, unbedenklich.","Sehr fett, bei Sodbrennen in Maßen.","Eisen,Protein","entenconfit"],
+ ["Croque Monsieur","ok","Überbacken mit Kochschinken, unbedenklich.","","Calcium,Protein",""],
+ ["Croque Madame","warn","Mit Spiegelei, oft mit flüssigem Eigelb. Ei durchgebraten bestellen.","","",""],
+ ["Ratatouille","ok","","","Vitamin C,Folsäure",""],
+ ["Soupe à l'oignon (Zwiebelsuppe)","warn","Oft mit Weißwein gekocht. Nachfragen.","","","zwiebelsuppe gratiniert"],
+ ["Moules frites, Moules marinières","warn","Muscheln meist in Weißwein gegart. Ohne Wein bestellen, Muscheln ganz durchgegart.","","Eisen,Protein","muscheln weißwein"],
+ ["Escargots (Weinbergschnecken)","ok","Ganz durchgegart.","","Eisen,Protein","schnecken"],
+ ["Froschschenkel","ok","Ganz durchgegart.","","Protein",""],
+ ["Galette (Buchweizen-Crêpe)","warn","Mit Ei oft flüssig in der Mitte, dazu Schinken. Mit Käse und Kochschinken, Ei durchgebacken.","","",""],
+ ["Salade niçoise","warn","Thunfisch oft rosa, Ei weich, Anchovis roh gesalzen. Nur mit Dosenthunfisch und hartem Ei.","","",""],
+ ["Salade lyonnaise","warn","Mit pochiertem Ei und Speck. Eher meiden.","","",""],
+ ["Gratin dauphinois, Kartoffelgratin","ok","","","Calcium",""],
+ ["Tartiflette","ok","Der Käse wird lange im Ofen durcherhitzt.","","Calcium",""],
+ ["Cassoulet, Choucroute garnie","ok","Lange gegart, heiß unbedenklich.","","Eisen,Protein","sauerkraut elsässisch"],
+ ["Französische Käseplatte","no","Meist Weich- und Rohmilchkäse. Nur Hartkäse wie Comté oder Beaufort ohne Rinde.","","","plateau de fromages"],
+ ["Pain au chocolat, Brioche","ok","","","","schokocroissant"],
+ ["Tarte Tatin, Clafoutis","ok","Durchgebacken unbedenklich.","","",""],
+ ["Profiteroles","ok","Gefüllt mit Sahne oder Eis, gekühlt.","","",""],
+ ["Île flottante","warn","Eischnee oft nur kurz gegart, dazu Vanillesoße mit Eigelb.","","","schwimmende insel"],
+ ["Soufflé","warn","Innen oft noch flüssig. Nur ganz durchgebacken.","","",""],
+ ["Champagner, Pastis, Kir","no","Alkohol.","","","crémant aperitif"],
+];
+FOOD_DATA.amerikanisch = [
+ ["Smash Burger, Slider","ok","Dünne Patties werden meist ganz durchgebraten. Trotzdem nachfragen.","","Eisen,Protein",""],
+ ["Steak (Rib-Eye, T-Bone, Prime Rib)","warn","Meist medium serviert. „Well done“ bestellen.","","Eisen,Protein","ribeye t-bone"],
+ ["Brisket, Smoked Beef","ok","Stundenlang gegart, unbedenklich. Rosa Rauchring ist normal.","","Eisen,Protein",""],
+ ["Fried Chicken, Buffalo Wings","ok","Ganz durchgebraten, auch am Knochen.","","Protein","chicken tenders"],
+ ["Mac and Cheese","ok","","","Calcium",""],
+ ["Cobb Salad","warn","Mit Speck, Ei und Blauschimmelkäse. Speck knusprig, Ei hart, Käse weglassen.","","",""],
+ ["Club Sandwich, BLT","warn","Bacon nur knusprig durchgebraten. Mayonnaise aus dem Glas.","","",""],
+ ["Eggs sunny side up, Over easy","no","Flüssiges Eigelb: Salmonellen. „Over hard“ oder Rührei bestellen.","","","spiegelei amerikanisch"],
+ ["Hash Browns, Home Fries","ok","Goldgelb statt dunkel.","","",""],
+ ["Bagel mit Lachs und Frischkäse","no","Mit Räucherlachs: Listerien.","","","lox bagel"],
+ ["Clam Chowder","ok","Muschelsuppe, heiß unbedenklich.","","Protein",""],
+ ["Lobster Roll","warn","Hummerfleisch gegart, aber kalt mit Mayonnaise. Nur frisch zubereitet.","","",""],
+ ["Fish and Chips","ok","Frisch frittiert.","","Protein,Jod",""],
+ ["Onion Rings, Corn Dog","ok","","","",""],
+ ["Meatloaf, Mashed Potatoes, Gravy","ok","Hackbraten ganz durchgegart.","","Eisen,Protein",""],
+ ["Cornbread","ok","","","",""],
+ ["Apple Pie, Pecan Pie","ok","Pecan Pie enthält Nüsse.","","",""],
+ ["Cookie Dough (Dessert)","warn","Nur, wenn ausdrücklich zum Rohverzehr hergestellt (ohne rohes Ei, mit erhitztem Mehl).","","",""],
+ ["Sweet Tea, Iced Tea","warn","Schwarztee mit Koffein und viel Zucker.","","",""],
+ ["Root Beer, Cream Soda","ok","Alkoholfrei, viel Zucker.","","",""],
+];
+const MOVE_TO3 = {
+ "Pulled Pork, Spareribs":"amerikanisch","Chicken Wings":"amerikanisch","Hot Dog":"amerikanisch","Burger (Restaurant)":"amerikanisch","Caesar Salad":"amerikanisch",
+ "Flammkuchen":"franzoesisch",
+};
+Object.keys(FOOD_DATA).forEach(g => { FOOD_DATA[g] = FOOD_DATA[g].filter(e => { const to = MOVE_TO3[e[0]]; if(to && to !== g){ FOOD_DATA[to].push(e); return false; } return true; }); });
+
 // Flache Liste für Suche und Steckbrief: [Name, Stufe, Worauf achten, Suchbegriffe, Gruppe, Hinweis, Nährstoffe]
 const FOODS = [];
 FOOD_GROUPS.forEach(([g,,def]) => (FOOD_DATA[g]||[]).forEach(([n,st,ach,hint,nut,syn]) => FOODS.push([n, st, ach || def, syn||"", g, hint||"", nut ? nut.split(",") : []])));
@@ -2336,7 +2395,7 @@ const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag
    SPEICHER (nur auf diesem Gerät)
    ============================================================ */
 const KEY = "bauchgefuehl.v1";
-const APP_VERSION = "13 · 06.11.2026";
+const APP_VERSION = "14 · 06.11.2026";
 let S = load();
 function load(){
   let s = null;
@@ -2638,7 +2697,7 @@ function foodResults(){
   return out;
 }
 /* Ohne Suchbegriff: alle Lebensmittel nach Gruppe und A bis Z */
-const KITCHENS = ["asiatisch","indisch","italienisch","spanisch","griechisch","mexikanisch","tuerkisch"];
+const KITCHENS = ["asiatisch","indisch","italienisch","spanisch","franzoesisch","griechisch","amerikanisch","mexikanisch","tuerkisch"];
 function foodBrowse(){
   const g = ui.fGroup || "alle";
   const list = FOODS.filter(f => g==="alle" || f[4]===g).slice().sort((x,y)=>x[0].localeCompare(y[0],"de"));

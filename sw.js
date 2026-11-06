@@ -1,6 +1,6 @@
 // Offline-Speicher: App-Dateien beim ersten Öffnen ablegen, danach auch ohne Internet starten.
 // Bei Änderungen an der App die Versionsnummer erhöhen (auch APP_VERSION in index.html).
-const CACHE = "bauchgefuehl-v13";
+const CACHE = "bauchgefuehl-v14";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-180.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
