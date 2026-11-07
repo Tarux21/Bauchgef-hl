@@ -92,6 +92,19 @@ def hm(s):
 
 def fmt_l(glasses): return f"{glasses * GLASS_L:.2f}".rstrip("0").rstrip(".").replace(".", ",")
 
+TXT = {
+    "de": {"and": " und ", "supp": "Zeit für {} 💊", "supp_body": "Kurz abhaken, dann ist der lila Ring voller.",
+           "appt": "Morgen: {}", "appt_at": " um {} Uhr", "appt_body": "Unterlagen einpacken und Fragen notieren.",
+           "water": "Trinkpause 💧", "water_body": "{} von {} l geschafft. Ein Glas Wasser tut dir und dem Baby gut.",
+           "test": "Die Erinnerungen sind eingerichtet. So sieht eine Mitteilung aus."},
+    "fr": {"and": " et ", "supp": "C'est l'heure : {} 💊", "supp_body": "Coche-le vite, et l'anneau violet se remplit.",
+           "appt": "Demain : {}", "appt_at": " à {}", "appt_body": "Prends ton dossier et note tes questions.",
+           "water": "Pause hydratation 💧", "water_body": "{} l sur {} l bus. Un verre d'eau fait du bien à toi et au bébé.",
+           "test": "Les rappels sont activés. Voici à quoi ressemble une notification."},
+}
+
+def txt(cfg): return TXT.get(cfg.get("lang"), TXT["de"])
+
 def due_messages(dev, now):
     """Welche Mitteilungen sind für dieses Gerät jetzt (diese Minute) fällig?"""
     cfg = {**DEFAULTS, **dev.get("settings", {})}
@@ -102,21 +115,23 @@ def due_messages(dev, now):
     minute = now.hour * 60 + now.minute
     if minute >= hm(cfg["quietAfter"]): return []
     out = []
+    T = txt(cfg)
     # Nahrungsergänzungen je Tageszeit
     for slot, t in cfg["times"].items():
         if t and hm(t) == minute:
-            open_ = [s["name"] for s in cfg["supps"] if s.get("time") == slot and s["name"] not in taken]
-            if open_:
-                names = " und ".join([", ".join(open_[:-1]), open_[-1]] if len(open_) > 1 else open_)
-                hint = next((s.get("hint") for s in cfg["supps"] if s["name"] in open_ and s.get("hint")), "")
-                out.append(("Zeit für " + names + " 💊", hint or "Kurz abhaken, dann ist der lila Ring voller.", "supp-" + slot))
+            open_s = [s for s in cfg["supps"] if s.get("time") == slot and s["name"] not in taken]
+            if open_s:
+                labels = [s.get("label") or s["name"] for s in open_s]
+                names = T["and"].join([", ".join(labels[:-1]), labels[-1]] if len(labels) > 1 else labels)
+                hint = next((s.get("hint") for s in open_s if s.get("hint")), "")
+                out.append((T["supp"].format(names), hint or T["supp_body"], "supp-" + slot))
     # Eigene Termine: Erinnerung am Vortag
     if cfg.get("apptReminder") and hm(cfg["apptReminder"]) == minute:
         tomorrow = (now.date() + timedelta(days=1)).isoformat()
         for a in cfg.get("appts", []):
             if a.get("date") == tomorrow:
-                out.append(("Morgen: " + a["title"] + (f" um {a['time']} Uhr" if a.get("time") else "") + " 📅",
-                            "Mutterpass einpacken und Fragen notieren.", "appt-" + a["date"] + a.get("time", "")))
+                out.append((T["appt"].format(a["title"]) + (T["appt_at"].format(a["time"]) if a.get("time") else "") + " 📅",
+                            T["appt_body"], "appt-" + a["date"] + a.get("time", "")))
     # Trinken: nur wenn hinter dem Plan (gleichmäßig verteilt von 8 bis 20 Uhr)
     if cfg.get("waterOn"):
         goal = int(cfg.get("waterGoal") or 6)
@@ -125,7 +140,7 @@ def due_messages(dev, now):
                 expected = round(goal * max(0, min(1, (minute - 8 * 60) / (12 * 60))))
                 have = int(st.get("water", 0))
                 if have < expected:
-                    out.append(("Trinkpause 💧", f"{fmt_l(have)} von {fmt_l(goal)} l geschafft. Ein Glas Wasser tut dir und dem Baby gut.", "water"))
+                    out.append((T["water"], T["water_body"].format(fmt_l(have), fmt_l(goal)), "water"))
     return out
 
 def tick(now=None, sender=send):
@@ -165,7 +180,8 @@ def clean_settings(s):
     out["waterGoal"] = max(4, min(12, int(s.get("waterGoal", 6))))
     out["appts"] = [{"title": str(a.get("title", ""))[:80], "date": str(a.get("date", ""))[:10], "time": str(a.get("time", ""))[:5]}
                      for a in s.get("appts", []) if isinstance(a, dict) and a.get("title") and len(str(a.get("date", ""))) == 10][:50]
-    out["supps"] = [{"name": str(x.get("name", ""))[:60], "time": x.get("time") if x.get("time") in ("morgens", "mittags", "abends") else "morgens", "hint": str(x.get("hint", ""))[:120]}
+    out["lang"] = "fr" if s.get("lang") == "fr" else "de"
+    out["supps"] = [{"name": str(x.get("name", ""))[:60], "label": str(x.get("label") or x.get("name", ""))[:60], "time": x.get("time") if x.get("time") in ("morgens", "mittags", "abends") else "morgens", "hint": str(x.get("hint", ""))[:120]}
                     for x in s.get("supps", []) if isinstance(x, dict) and x.get("name")][:20]
     return out
 
@@ -216,9 +232,9 @@ class Handler(BaseHTTPRequestHandler):
                 devs[dev_id]["status"] = {"date": str(data.get("date", ""))[:10], "water": int(data.get("water", 0)), "taken": [str(x)[:60] for x in data.get("taken", [])][:20]}
                 store("devices.json", devs); return self.reply(200, {"ok": True})
             if self.path == "/api/test":
-                sub = devs[dev_id]["subscription"]
+                sub = devs[dev_id]["subscription"]; T = txt(devs[dev_id].get("settings", {}))
         if self.path == "/api/test":
-            ok = send(sub, "Bauchgefühl 💜", "Die Erinnerungen sind eingerichtet. So sieht eine Mitteilung aus.", "test")
+            ok = send(sub, "Bauchgefühl 💜", T["test"], "test")
             return self.reply(200 if ok else 410, {"ok": ok})
         if self.path == "/api/unsubscribe":
             with lock:
@@ -260,6 +276,12 @@ def selftest():
     dev["settings"]["appts"] = clean_settings({"appts": [{"title": "Frauenarzt", "date": "2026-11-08", "time": "09:30"}]})["appts"]
     checks.append(("Termin am Vortag 18 Uhr", [t for t, _, _ in due_messages(dev, at(18, 0))] == ["Morgen: Frauenarzt um 09:30 Uhr 📅"]))
     checks.append(("Termin nicht zwei Tage vorher", due_messages(datetime_shift(dev), at(18, 0)) == []))
+    fr = json.loads(json.dumps(dev)); fr["settings"] = {**fr["settings"], **clean_settings({"lang": "fr", "times": fr["settings"]["times"], "waterTimes": ["11:00"], "appts": fr["settings"]["appts"],
+        "supps": [{"name": "Folsäure", "label": "Acide folique", "time": "morgens"}, {"name": "Jod", "label": "Iode", "time": "morgens"}]})}
+    fr["status"] = {"date": d.isoformat(), "water": 0, "taken": ["Jod"]}
+    checks.append(("Französisch: Supplement", [t for t, _, _ in due_messages(fr, at(8, 30))] == ["C'est l'heure : Acide folique 💊"]))
+    checks.append(("Französisch: Termin", [t for t, _, _ in due_messages(fr, at(18, 0))] == ["Demain : Frauenarzt à 09:30 📅"]))
+    checks.append(("Französisch: Trinken", [b for _, b, _ in due_messages(fr, at(11, 0))] == ["0 l sur 1,5 l bus. Un verre d'eau fait du bien à toi et au bébé."]))
     global DATA_DIR
     import tempfile
     DATA_DIR = tempfile.mkdtemp()

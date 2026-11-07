@@ -7,7 +7,7 @@ Schickt Push-Mitteilungen an die Bauchgefühl-App auf dem iPhone:
 - **Eigene Termine** aus dem Vorsorge-Kalender am Vortag um 18 Uhr.
 - Nach der Ruhezeit (21 Uhr) kommt nichts mehr.
 
-Die App meldet ihre Einstellungen und den Tagesstand (Haken, Gläser) an den Server. Er ist **nur im eigenen Tailscale-Netz** erreichbar (`tailscale serve`, kein Funnel). Die Mitteilungen selbst laufen über Apples Push-Dienst. Dafür muss der Pi nur ins Internet können, am Router wird nichts geöffnet.
+Die Mitteilungen kommen in der Sprache, die in der App eingestellt ist (Deutsch oder Französisch). Die App meldet ihre Einstellungen und den Tagesstand (Haken, Gläser) an den Server. Er ist **nur im eigenen Tailscale-Netz** erreichbar (`tailscale serve`, kein Funnel). Die Mitteilungen selbst laufen über Apples Push-Dienst. Dafür muss der Pi nur ins Internet können, am Router wird nichts geöffnet.
 
 ## Voraussetzungen
 
