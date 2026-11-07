@@ -20,7 +20,8 @@ from zoneinfo import ZoneInfo
 APP_ORIGIN = os.environ.get("BG_APP_ORIGIN", "https://tarux21.github.io")
 PORT = int(os.environ.get("BG_PORT", "8787"))
 DATA_DIR = os.environ.get("BG_DATA", os.path.join(os.path.dirname(os.path.abspath(__file__)), "data"))
-CONTACT = os.environ.get("BG_CONTACT", "mailto:bauchgefuehl@example.invalid")
+# Kontaktangabe für Apple/Google (muss eine gültige https- oder mailto-Adresse sein)
+CONTACT = os.environ.get("BG_CONTACT", "https://tarux21.github.io")
 TZ = ZoneInfo(os.environ.get("BG_TZ", "Europe/Berlin"))
 GLASS_L = 0.25
 DEFAULTS = {
@@ -70,20 +71,27 @@ def vapid():
 
 
 # ---------------------------------------------------------------- Senden
+def signing_key():
+    """Privater Schlüssel als Vapid-Objekt. pywebpush versteht PEM als Text nicht, deshalb hier laden."""
+    from py_vapid import Vapid
+    return Vapid.from_pem(vapid()["private_pem"].encode())
+
 def send(sub, title, body, tag="bauchgefuehl"):
     """Schickt eine Mitteilung. Gibt False zurück, wenn das Abo nicht mehr gilt."""
     from pywebpush import webpush, WebPushException
-    keys = vapid()
     payload = json.dumps({"title": title, "body": body, "tag": tag, "url": "./?tab=ziel"}, ensure_ascii=False)
     try:
-        webpush(subscription_info=sub, data=payload, vapid_private_key=keys["private_pem"],
+        webpush(subscription_info=sub, data=payload, vapid_private_key=signing_key(),
                 vapid_claims={"sub": CONTACT}, ttl=3600)
         log.info("Gesendet: %s – %s", title, body)
         return True
     except WebPushException as e:
         code = getattr(e.response, "status_code", None)
-        log.warning("Senden fehlgeschlagen (%s): %s", code, e)
+        log.warning("Senden fehlgeschlagen (%s): %s %s", code, e, getattr(e.response, "text", "")[:200])
         return code not in (404, 410)
+    except Exception:
+        log.exception("Senden fehlgeschlagen")
+        return True
 
 
 # ---------------------------------------------------------------- Logik
@@ -247,6 +255,23 @@ class Handler(BaseHTTPRequestHandler):
 def datetime_shift(dev):
     d = json.loads(json.dumps(dev)); d["settings"]["appts"][0]["date"] = "2026-11-09"; return d
 
+def real_send_check():
+    """Prüft alles bis kurz vor dem Versand: Schlüssel laden, JWT signieren, Inhalt für ein Test-Abo verschlüsseln."""
+    try:
+        import base64, os as _os
+        from cryptography.hazmat.primitives.asymmetric import ec
+        from cryptography.hazmat.primitives import serialization
+        from pywebpush import WebPusher
+        b64 = lambda x: base64.urlsafe_b64encode(x).rstrip(b"=").decode()
+        client = ec.generate_private_key(ec.SECP256R1()).public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+        sub = {"endpoint": "https://web.push.apple.com/test", "keys": {"p256dh": b64(client), "auth": b64(_os.urandom(16))}}
+        hdr = signing_key().sign({"sub": CONTACT, "aud": "https://web.push.apple.com"})
+        enc = WebPusher(sub).encode(json.dumps({"title": "Test"}).encode(), "aes128gcm")
+        return hdr.get("Authorization", "").startswith("vapid t=") and len(enc["body"]) > 0
+    except Exception as e:
+        print("   ", type(e).__name__, e)
+        return False
+
 def selftest():
     sent = []
     fake = lambda sub, t, b, tag: sent.append((t, b)) or True
@@ -289,6 +314,7 @@ def selftest():
     store("devices.json", {"handy": dev})
     tick(at(8, 30), fake); tick(at(8, 30), fake)
     checks.append(("keine doppelte Mitteilung in derselben Minute", len(sent) == 1))
+    checks.append(("Schlüssel laden, signieren und verschlüsseln (ohne Senden)", real_send_check()))
     ok = all(c for _, c in checks)
     for name, c in checks: print(("OK    " if c else "FEHLER"), name)
     print("Selbsttest:", "bestanden" if ok else "FEHLGESCHLAGEN")
