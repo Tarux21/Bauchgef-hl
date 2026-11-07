@@ -26,6 +26,8 @@ bash install.sh
 
 Das Skript installiert die Python-Pakete, führt einen Selbsttest aus, richtet den Dienst `bauchgefuehl-push` ein und gibt ihn per `tailscale serve` frei. Am Ende steht die Adresse, z. B. `https://raspberrypi.tail1234.ts.net`.
 
+Ist Port 443 auf dem Pi schon durch einen anderen Dienst belegt, einen anderen Port wählen: `BG_HTTPS_PORT=8444 bash install.sh`. Die Adresse lautet dann `https://…ts.net:8444`, genau so (mit Port) in der App eintragen. Bei uns: `https://heroserver.tail671de7.ts.net:8444`.
+
 In der App: **Zahnrad → Erinnerungen → Adresse eintragen → „Mitteilungen einschalten“** und die Nachfrage des iPhones erlauben. Mit „Testnachricht“ prüfen.
 
 ## Aktualisieren

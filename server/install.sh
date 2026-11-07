@@ -6,6 +6,8 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
 USER_NAME="$(id -un)"
 PORT="${BG_PORT:-8787}"
+# Öffentlicher HTTPS-Port im Tailnet. 443 ist oft schon belegt (z. B. Vaultwarden), dann z. B. BG_HTTPS_PORT=8444
+HTTPS_PORT="${BG_HTTPS_PORT:-443}"
 
 echo "== 1/4 Python-Pakete"
 if sudo apt-get install -y python3-pywebpush python3-cryptography >/dev/null 2>&1; then
@@ -47,7 +49,11 @@ sleep 2
 curl -fsS "http://127.0.0.1:$PORT/api/health" && echo
 
 echo "== 4/4 Im Tailscale-Netz per HTTPS freigeben (nur eigene Geräte, kein Funnel)"
-sudo tailscale serve --bg "$PORT"
+# Nicht versehentlich einen anderen Dienst auf Port 443 überschreiben
+if [ "$HTTPS_PORT" = "443" ] && sudo tailscale serve status 2>/dev/null | grep -qE "^https://[^ :]+\.ts\.net( |$)"; then
+  echo "Port 443 ist in tailscale serve schon belegt. Bitte mit BG_HTTPS_PORT=8444 bash install.sh erneut starten."; exit 1
+fi
+sudo tailscale serve --bg --https="$HTTPS_PORT" "$PORT"
 tailscale serve status
 echo
-echo "Fertig. Die Adresse oben (https://….ts.net) in der App unter Einstellungen → Erinnerungen eintragen."
+echo "Fertig. Die Adresse oben (https://….ts.net, ggf. mit :Port) in der App unter Einstellungen → Erinnerungen eintragen."
